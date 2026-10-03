@@ -133,14 +133,14 @@ h1 { font-size: 1.7rem; letter-spacing: 4px; color: var(--primary-deep); text-sh
 .detail-sub { color: var(--ink-soft); font-size: 0.8rem; margin-bottom: 8px; }
 .detail-intro {
   background: var(--bg); border: 2px dashed var(--line);
-  padding: 10px; font-size: 0.85rem; margin-bottom: 12px;
+  padding: 10px 40px 10px 10px; font-size: 0.85rem; margin-bottom: 12px;
 }
 .detail-table > div {
   display: flex; gap: 10px; padding: 8px 0;
   border-bottom: 2px dotted var(--primary-soft); font-size: 0.85rem;
 }
 .detail-table dt { flex: 0 0 76px; color: var(--ink-soft); }
-.detail-table dd { flex: 1; }
+.detail-table dd { flex: 1; min-width: 0; position: relative; padding-right: 36px; }
 .detail-actions { display: flex; gap: 10px; margin-top: 14px; }
 .detail-actions .px-btn { flex: 1; }
 
@@ -222,8 +222,10 @@ footer {
 #countModal .modal-actions .px-btn { flex: 1; }
 
 /* 帮助页 */
-.help-view h2 { font-size: 1.1rem; letter-spacing: 2px; color: var(--primary-deep); margin: 10px 0; }
+.help-view { position: relative; }
+.help-view h2 { font-size: 1.1rem; letter-spacing: 2px; color: var(--primary-deep); margin: 10px 40px 10px 0; }
 .help-list { margin-left: 1.3em; font-size: 0.85rem; display: flex; flex-direction: column; gap: 10px; }
+.help-view .edit-panel { margin-top: 12px; }
 .footer-link { color: var(--primary-deep); font-size: 0.75rem; }
 
 /* 五点下线动画：5 方块逐级上下跳动 */

@@ -178,13 +178,16 @@
         <button class="px-btn small ghost" id="helpBackBtn" type="button">← 返回</button>
       </div>
       <h2>玩法说明 · 全局规则</h2>
-      <ol class="help-list">
-        <li>所有倒计时阶段都带有【取消】按钮，可随时终止本次操作，锁定资源全额返还。</li>
-        <li>屏障收回统一 5 秒平稳卸除，防止心念层面震荡；二层、三层开启后持续锁定星星，手动收回才返还。</li>
-        <li>正雷净化、疏导释放弓箭是一次性心念工具：蓄力阶段锁定资源，倒计时内取消可返还；动作完成（射出/执行）后能量不再返还。</li>
-        <li>过滤器校准是浅层专属维护操作：确认弹窗后直接执行，无倒计时，消耗 0.5⭐ 不返还。</li>
-        <li>每日 0 点按本机时间自动回满 5 颗（浅层过滤层自动常驻 0.5⭐）；半星粒度 0.5⭐，上限 4.5⭐可用。</li>
-      </ol>
+      <button class="mini-edit" id="editHelpBtn" type="button" title="编辑全局规则">✏</button>
+      <ol class="help-list" id="helpList"></ol>
+      <div class="edit-panel" id="editHelpPanel" hidden>
+        <textarea id="editHelpText" rows="6"></textarea>
+        <div class="edit-btns">
+          <button class="px-btn small" id="saveHelpBtn" type="button">保存</button>
+          <button class="px-btn small ghost" id="cancelHelpBtn" type="button">取消</button>
+          <button class="link-btn" id="resetHelpBtn" type="button">恢复默认</button>
+        </div>
+      </div>
     </section>
 
     <footer>

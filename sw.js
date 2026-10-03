@@ -2,7 +2,7 @@
  * Service Worker for 心念星辰 PWA v2
  * 相对路径缓存：兼容 GitHub Pages 项目子路径与本地 file/离线。
  */
-const CACHE_NAME = 'xinnian-v6';
+const CACHE_NAME = 'xinnian-v7';
 const PRECACHE_URLS = [
   './',
   './index.html',

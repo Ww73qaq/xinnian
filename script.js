@@ -101,6 +101,38 @@
 
   var CALIBRATE_COPY = '过滤器校准：一次性消耗0.5⭐。重置浅层识别判定，刷新白名单身份校验，清理滞留杂讯。浅层屏障维持开启，不会中断基础防护。消耗能量不可回收。';
 
+  // 玩法说明全局规则（默认 5 条，可在页面右上角✏编辑，每条一行）
+  var HELP_RULES = [
+    '所有倒计时阶段都带有【取消】按钮，可随时终止本次操作，锁定资源全额返还。',
+    '屏障收回统一 5 秒平稳卸除，防止心念层面震荡；二层、三层开启后持续锁定星星，手动收回才返还。',
+    '正雷净化、疏导释放弓箭是一次性心念工具：蓄力阶段锁定资源，倒计时内取消可返还；动作完成（射出/执行）后能量不再返还。',
+    '过滤器校准是浅层专属维护操作：确认弹窗后直接执行，无倒计时，消耗 0.5⭐ 不返还。',
+    '每日 0 点按本机时间自动回满 5 颗（浅层过滤层自动常驻 0.5⭐）；半星粒度 0.5⭐，上限 4.5⭐可用。'
+  ];
+
+  function getHelpRules() {
+    try {
+      var raw = localStorage.getItem(STATE_KEY);
+      var c = raw && JSON.parse(raw).custom;
+      if (c && typeof c.help === 'string' && c.help.trim()) {
+        return c.help.split('\n').map(function (l) { return l.trim(); }).filter(function (l) { return l; });
+      }
+    } catch (e) {}
+    return HELP_RULES.slice();
+  }
+
+  function renderHelp() {
+    var ol = document.getElementById('helpList');
+    if (!ol) return;
+    var rules = getHelpRules();
+    ol.innerHTML = '';
+    rules.forEach(function (r) {
+      var li = document.createElement('li');
+      li.textContent = r;
+      ol.appendChild(li);
+    });
+  }
+
   var OCCUPY_IDS = ['wind', 'water', 'earth', 'bow'];
 
   var starCountEl = document.getElementById('starCount');
@@ -141,6 +173,7 @@
   function showHelpPage() {
     currentDetailId = null;
     hideAllPages();
+    closeEditPanels();
     if (helpView) helpView.hidden = false;
     window.scrollTo(0, 0);
   }
@@ -184,10 +217,11 @@
   }
 
   function closeEditPanels() {
-    var p1 = document.getElementById('editIntroPanel');
-    var p2 = document.getElementById('editNotePanel');
-    if (p1) p1.hidden = true;
-    if (p2) p2.hidden = true;
+    var ids = ['editIntroPanel', 'editNotePanel', 'editHelpPanel'];
+    ids.forEach(function (pid) {
+      var p = document.getElementById(pid);
+      if (p) p.hidden = true;
+    });
   }
 
   // 介绍 / 注意事项编辑（消耗星级、对应牌、类型、状态保持只读）
@@ -764,6 +798,7 @@
     var migrated = !!(s.occupied && s.occupied.wind);
     saveState(s);
     renderAll(s);
+    renderHelp();
     route(); // 支持带 #m-xxx / #help 直连进入
     window.addEventListener('hashchange', route);
     // 跨重载恢复未完成的倒计时（已过期的直接落账）
@@ -798,6 +833,33 @@
     document.getElementById('helpBackBtn').addEventListener('click', closeDetail);
     wireEdit('intro');
     wireEdit('note');
+    document.getElementById('editHelpBtn').addEventListener('click', function () {
+      document.getElementById('editHelpText').value = getHelpRules().join('\n');
+      document.getElementById('editHelpPanel').hidden = false;
+    });
+    document.getElementById('cancelHelpBtn').addEventListener('click', function () {
+      document.getElementById('editHelpPanel').hidden = true;
+    });
+    document.getElementById('saveHelpBtn').addEventListener('click', function () {
+      var v = document.getElementById('editHelpText').value;
+      var lines = v.split('\n').map(function (l) { return l.trim(); }).filter(function (l) { return l; });
+      if (!lines.length) { toast('内容不能为空'); return; }
+      var s = freshState().state;
+      if (!s.custom) s.custom = {};
+      s.custom.help = lines.join('\n');
+      saveState(s);
+      renderHelp();
+      document.getElementById('editHelpPanel').hidden = true;
+      toast('已保存');
+    });
+    document.getElementById('resetHelpBtn').addEventListener('click', function () {
+      var s = freshState().state;
+      if (s.custom && ('help' in s.custom)) delete s.custom.help;
+      saveState(s);
+      renderHelp();
+      document.getElementById('editHelpPanel').hidden = true;
+      toast('已恢复默认');
+    });
     document.getElementById('modalConfirmBtn').addEventListener('click', function () {
       var fn = pendingConfirm;
       hideConfirm();
