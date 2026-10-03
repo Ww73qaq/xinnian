@@ -2,54 +2,141 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>心念星辰</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>心念星辰 · 星愿守卫</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
-  <!-- PWA meta tags -->
-  <meta name="theme-color" content="#4a90e2">
+  <meta name="theme-color" content="#7AB8FF">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="#4a90e2">
-  <meta name="description" content="每日一粒星，记录美好瞬间">
-  <!-- iOS 15+ホーム画面用メタデータ -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="心念星辰">
+  <meta name="description" content="像素风三层守卫：每日5颗星，风·水·土 + 正雷净化 + 弓晶疏导">
   <meta name="format-detection" content="telephone=no">
-  <meta name="msapplication-TileColor" content="#4a90e2">
-  <meta name="msapplication-config" content="manifest.json">
-  <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgamdtdWk9IiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHBzOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgPjxnIGZpbGw9IiNGNkE5MGUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDgwIiBmaWxsPSJ3aGl0ZSIvPjxwYXRoIGQ9Ik00MiA0Miw4MiA4Miw0NSA0NSw4NSA4NSw0MCA0MCA4MCA4MCA0NSA0NSw4NSA4NSw0MCA0MCA4MCA4MCA0NSA0NSw4NSA4NSw0MCA0MCA4MCA4MCA0NSA0NSw4NSA4NSw0MCA0MCA4MCA4MCA0NSA0NSw4NSA4NSw0MCA0MCA4MCA4MCA0NSA0NSw4NSA4NSw0MCA0MCA4MCA4MCA0NSA0NSw4NSA4NSw0MCA0MCA4MCA4MCA0NSA0NSw4NSA4NSw0MCA0MCA4MCA4MCA0NSDQvQ0kiIHN0cm9rZT0iIzRDOTBFIiBjbGlwLXJ1bGU9ImVwb2NoYWJvb3QiIHN0cm9rZT0iI0M5MEUiIHN0cm9rZS13aWR0aD0iOCIvPjwvc3ZnPg==">
+  <meta name="msapplication-TileColor" content="#7AB8FF">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.svg">
+  <link rel="icon" type="image/svg+xml" href="icons/icon-192x192.svg">
 </head>
 <body>
+  <div class="px-bg" aria-hidden="true"></div>
   <div class="container">
-    <header>
-      <h1>💫 心念星辰</h1>
-      <p>记录生活中的闪耀瞬间</p>
+
+    <header class="px-header">
+      <div class="px-logo" aria-hidden="true">
+        <span class="px-logo-star"></span>
+        <span class="px-logo-star small"></span>
+      </div>
+      <h1>心念星辰</h1>
+      <p class="subtitle">三层守卫 · 每日 5 颗星 · 0 点刷新</p>
     </header>
-    
+
     <main>
-      <div class="stats">
-        <div class="star-count" id="starCount">0</div>
-        <div class="last-reset" id="lastReset">今天的星星</div>
-      </div>
-      
-      <div class="stars-display" id="starsDisplay">
-        <!-- 星星将在这里动态生成 -->
-      </div>
-      
-      <div class="actions">
-        <button class="star-btn" id="addStarBtn" aria-label="添加一颗星星">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.21L7 14.14 2 9.21l6.91-1.02L12 2z"/>
-          </svg>
-          添加星星
-        </button>
-      </div>
+      <!-- 星星能量区 -->
+      <section class="px-card energy-card" aria-label="今日星星能量">
+        <div class="energy-top">
+          <div class="energy-num"><span id="starCount">5</span><span class="energy-total"> / 5</span></div>
+          <div class="energy-date" id="lastReset">今天的星星</div>
+        </div>
+        <div class="stars-display" id="starsDisplay" aria-live="polite"></div>
+        <div class="energy-actions">
+          <button class="px-btn small" id="addOneBtn" type="button">+1 颗</button>
+          <button class="px-btn small" id="addHalfBtn" type="button">+半颗</button>
+          <button class="px-btn small ghost" id="removeHalfBtn" type="button">取消半颗</button>
+        </div>
+        <p class="energy-hint" id="energyHint">可用星数 = 5 − 占用 − 已消耗</p>
+      </section>
+
+      <!-- 五功能入口：上三下二 -->
+      <section aria-label="守卫功能">
+        <div class="func-grid">
+          <button class="px-card func-btn" type="button" data-module="wind">
+            <span class="func-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M3 8h9a3 3 0 1 0-3-3"/><path d="M3 12h13a3 3 0 1 1-3 3"/><path d="M3 16h6a2.5 2.5 0 1 1-2.5 2.5"/>
+              </svg>
+            </span>
+            <span class="func-name">浅层过滤层</span>
+            <span class="func-elem">风 · 低</span>
+            <span class="func-cost">0.5⭐ 常驻</span>
+            <span class="func-state" data-state-for="wind"></span>
+          </button>
+
+          <button class="px-card func-btn" type="button" data-module="water">
+            <span class="func-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3c3.5 4.2 6 7.3 6 10.2A6 6 0 0 1 6 13.2C6 10.3 8.5 7.2 12 3z"/><path d="M9.5 13.5a2.5 2.5 0 0 0 2.5 2.5"/>
+              </svg>
+            </span>
+            <span class="func-name">情绪隔离层</span>
+            <span class="func-elem">水 · 中</span>
+            <span class="func-cost">1.5⭐ 按需</span>
+            <span class="func-state" data-state-for="water"></span>
+          </button>
+
+          <button class="px-card func-btn" type="button" data-module="earth">
+            <span class="func-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 16l4-8 4 5 4-7 4 10z"/><path d="M3 19h18"/><path d="M7 19v2M12 19v2M17 19v2"/>
+              </svg>
+            </span>
+            <span class="func-name">深层拦截层</span>
+            <span class="func-elem">土 · 高</span>
+            <span class="func-cost">3.0⭐ 短时</span>
+            <span class="func-state" data-state-for="earth"></span>
+          </button>
+
+          <button class="px-card func-btn" type="button" data-module="thunder">
+            <span class="func-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+                <path d="M13 2L5 13h5l-1 9 8-11h-5l1-9z"/>
+              </svg>
+            </span>
+            <span class="func-name">正雷净化</span>
+            <span class="func-elem">雷 · 瞬时</span>
+            <span class="func-cost">2.0⭐ 一次性</span>
+            <span class="func-state" data-state-for="thunder"></span>
+          </button>
+
+          <button class="px-card func-btn wide" type="button" data-module="bow">
+            <span class="func-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 3c5 3 5 15 0 18"/><path d="M6 12h11"/><path d="M14 8l4 4-4 4"/><path d="M18 6l1.5 1.5L18 9"/>
+              </svg>
+            </span>
+            <span class="func-name">疏导释放弓晶</span>
+            <span class="func-elem">晶 · 按需</span>
+            <span class="func-cost">1.5⭐ 按需</span>
+            <span class="func-state" data-state-for="bow"></span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 详情页（单页内切换，离线可用） -->
+      <section class="px-card detail-view" id="detailView" hidden aria-label="功能详情">
+        <button class="px-btn small ghost" id="backBtn" type="button">← 返回</button>
+        <h2 id="detailTitle">功能详情</h2>
+        <p class="detail-sub" id="detailSub"></p>
+        <p class="detail-intro" id="detailIntro"></p>
+        <dl class="detail-table">
+          <div><dt>对应牌</dt><dd id="detailTarot"></dd></div>
+          <div><dt>消耗星级</dt><dd id="detailCost"></dd></div>
+          <div><dt>消耗类型</dt><dd id="detailType"></dd></div>
+          <div><dt>备注</dt><dd id="detailNote"></dd></div>
+          <div><dt>当前状态</dt><dd id="detailStatus"></dd></div>
+        </dl>
+        <div class="detail-actions">
+          <button class="px-btn" id="primaryActionBtn" type="button">开启</button>
+          <button class="px-btn ghost" id="secondaryActionBtn" type="button" hidden>收回接地</button>
+        </div>
+      </section>
     </main>
-    
+
     <footer>
-      <p>⭐ 星星存储在您的浏览器中，断网也能使用</p>
-      <p>零点自动重置，每天新的开始</p>
+      <p>💙 星星存在本机浏览器，断网可用 · 0 点自动回满 5 颗</p>
     </footer>
   </div>
 
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="script.js"></script>
 </body>
 </html>

@@ -1,54 +1,39 @@
 {
-  "name": "心念星辰",
+  "name": "心念星辰 · 星愿守卫",
   "short_name": "心念",
-  "description": "记录生活中的闪耀瞬间，每日一粒星",
-  "start_url": ".?",
+  "description": "像素风三层守卫：每日5颗星，风水土 + 正雷净化 + 弓晶疏导，离线可用",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#4a90e2",
-  "scope": ".",
+  "background_color": "#eaf3ff",
+  "theme_color": "#7AB8FF",
   "icons": [
     {
-      "src": "icons/icon-72x72.png",
+      "src": "icons/icon-72x72.svg",
       "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "apple-touch-icon"
+      "type": "image/svg+xml"
     },
     {
-      "src": "icons/icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png"
-    },
-    {
-      "src": "icons-icon-128x128.png",
+      "src": "icons/icon-128x128.svg",
       "sizes": "128x128",
-      "type": "image/png"
+      "type": "image/svg+xml"
     },
     {
-      "src": "icons/icon-152x152.png",
+      "src": "icons/icon-152x152.svg",
       "sizes": "152x152",
-      "type": "image/png"
+      "type": "image/svg+xml"
     },
     {
-      "src": "icons/icon-192x192.png",
+      "src": "icons/icon-180x180.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icons/icon-192x192.svg",
       "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/svg+xml"
     }
   ],
-  "shortcuts": [
-    {
-      "name": "新增一颗星",
-      "shortcut": "1",
-      "url": "/",
-      "icons": [{ "src": "icons/icon-96x96.png", "sizes": "96x96" }]
-    }
-  ],
-  "categories": ["lifestyle"]
+  "categories": ["lifestyle", "health"]
 }
