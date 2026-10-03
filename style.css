@@ -178,13 +178,41 @@ footer {
 .detail-topbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .weak-btn {
   font: inherit; font-size: 0.72rem; letter-spacing: 1px;
-  background: #fff; color: #b05757;
-  border: 2px solid #d8b4b4; border-radius: 2px;
+  background: #eef1f5; color: #5b6b7f;
+  border: 2px solid #b9c4d0; border-radius: 2px;
   box-shadow: 2px 2px 0 var(--ink);
   padding: 5px 9px; min-height: 34px; cursor: pointer;
 }
 .weak-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
 .weak-btn[hidden] { display: none; }
+
+/* 危险确认：红色只允许出现在二次确认弹窗里 */
+.px-btn.danger { background: #d95f5f; color: #fff; }
+
+/* 介绍 / 注意事项可编辑 */
+.editable-box { position: relative; }
+.mini-edit {
+  position: absolute; top: 6px; right: 6px;
+  font-size: 0.75rem; line-height: 1;
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px solid var(--line); border-radius: 2px;
+  padding: 3px 6px; cursor: pointer; color: var(--ink-soft);
+}
+.detail-table .mini-edit { top: 2px; }
+.edit-panel { margin-top: 8px; }
+.edit-panel[hidden] { display: none; }
+.edit-panel textarea {
+  width: 100%; font: inherit; font-size: 0.85rem; color: var(--ink);
+  border: 2px solid var(--primary); border-radius: 2px;
+  padding: 8px; resize: vertical; background: #fff;
+}
+.edit-btns { display: flex; gap: 8px; margin-top: 8px; }
+.edit-btns .px-btn { flex: 1; min-height: 40px; font-size: 0.78rem; }
+.edit-btns .link-btn {
+  border: none; background: none; color: var(--ink-soft);
+  font-size: 0.75rem; cursor: pointer; text-decoration: underline;
+  padding: 8px 4px;
+}
 
 /* 五点下线动画：5 方块逐级上下跳动 */
 .progress-card { text-align: center; }

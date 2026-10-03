@@ -64,8 +64,8 @@
     wind: {
       name: '浅层过滤层', elem: '风', level: '低',
       tarot: '星币七（正）', cost: 0.5, type: '常驻占用',
-      intro: '过滤碎片杂念、外来独立杂念。',
-      note: '被动后台过滤，关闭归还。'
+      intro: '持续后台过滤碎片杂念、外来心念信号；遵循底层公理：恶意止步，善意无阻，对时停信号仅做身份核验，不拦截。',
+      note: '常驻后台运行，开启锁定0.5⭐；关闭屏障，0.5⭐额度返还。仅应急场景使用，日常保持常开。'
     },
     water: {
       name: '情绪心念隔离层', elem: '水', level: '中',
@@ -147,17 +147,58 @@
     }
   }
 
-  // 确认弹窗（所有开启 / 触发类动作统一走这里，同视觉风格）
+  // 确认弹窗（所有开启 / 触发类动作统一走这里，同视觉风格；tone='danger' 仅关闭类用红色）
   var pendingConfirm = null;
-  function showConfirm(text, confirmLabel, onConfirm) {
+  function showConfirm(text, confirmLabel, onConfirm, tone) {
     document.getElementById('modalText').textContent = text;
-    document.getElementById('modalConfirmBtn').textContent = confirmLabel || '确认';
+    var btn = document.getElementById('modalConfirmBtn');
+    btn.textContent = confirmLabel || '确认';
+    if (tone === 'danger') btn.classList.add('danger');
+    else btn.classList.remove('danger');
     pendingConfirm = onConfirm;
     document.getElementById('confirmModal').hidden = false;
   }
   function hideConfirm() {
     pendingConfirm = null;
     document.getElementById('confirmModal').hidden = true;
+    document.getElementById('modalConfirmBtn').classList.remove('danger');
+  }
+
+  function closeEditPanels() {
+    var p1 = document.getElementById('editIntroPanel');
+    var p2 = document.getElementById('editNotePanel');
+    if (p1) p1.hidden = true;
+    if (p2) p2.hidden = true;
+  }
+
+  // 介绍 / 注意事项编辑（消耗星级、对应牌、类型、状态保持只读）
+  function wireEdit(kind) {
+    var isIntro = kind === 'intro';
+    var panelId = isIntro ? 'editIntroPanel' : 'editNotePanel';
+    var textId = isIntro ? 'editIntroText' : 'editNoteText';
+    var field = isIntro ? 'intro' : 'note';
+    document.getElementById(isIntro ? 'editIntroBtn' : 'editNoteBtn').addEventListener('click', function () {
+      if (!currentDetailId) return;
+      document.getElementById(textId).value = isIntro ? getIntro(currentDetailId) : getNote(currentDetailId);
+      document.getElementById(panelId).hidden = false;
+    });
+    document.getElementById(isIntro ? 'cancelIntroBtn' : 'cancelNoteBtn').addEventListener('click', function () {
+      document.getElementById(panelId).hidden = true;
+    });
+    document.getElementById(isIntro ? 'saveIntroBtn' : 'saveNoteBtn').addEventListener('click', function () {
+      if (!currentDetailId) return;
+      var v = document.getElementById(textId).value.trim();
+      if (!v) { toast('内容不能为空'); return; }
+      var s = setCustom(currentDetailId, field, v);
+      renderAll(s);
+      toast('已保存');
+    });
+    document.getElementById(isIntro ? 'resetIntroBtn' : 'resetNoteBtn').addEventListener('click', function () {
+      if (!currentDetailId) return;
+      var s = resetCustom(currentDetailId, field);
+      renderAll(s);
+      toast('已恢复默认');
+    });
   }
 
   // 进度弹窗：如下线过程，5 点跳动 ms 毫秒后执行 done（不可点掉）
@@ -204,18 +245,54 @@
   }
 
   function blankState() {
-    // 浅层过滤层为常驻被动：每日初始即锁定 0.5，无开启/关闭按钮
-    return { date: todayStr(), occupied: { wind: 0.5 }, spent: 0 };
+    // 浅层过滤层每日自动常驻：初始即锁定 0.5，可手动关闭返还
+    return { date: todayStr(), occupied: { wind: 0.5 }, spent: 0, custom: {} };
   }
 
   // 老存档迁移：同日的旧状态补上常驻风占用
   function ensureWind(s) {
     if (!s.occupied || typeof s.occupied !== 'object') s.occupied = {};
+    if (!s.custom || typeof s.custom !== 'object') s.custom = {};
     if (!s.occupied.wind) {
       s.occupied.wind = 0.5;
       return true;
     }
     return false;
+  }
+
+  // 介绍 / 注意事项：用户自定义覆盖（localStorage），只读项不受影响
+  function getIntro(id) {
+    try {
+      var raw = localStorage.getItem(STATE_KEY);
+      var c = raw && JSON.parse(raw).custom;
+      if (c && c[id] && typeof c[id].intro === 'string' && c[id].intro) return c[id].intro;
+    } catch (e) {}
+    return MODULES[id].intro;
+  }
+  function getNote(id) {
+    try {
+      var raw = localStorage.getItem(STATE_KEY);
+      var c = raw && JSON.parse(raw).custom;
+      if (c && c[id] && typeof c[id].note === 'string' && c[id].note) return c[id].note;
+    } catch (e) {}
+    return MODULES[id].note;
+  }
+  function setCustom(id, field, text) {
+    var s = freshState().state;
+    if (!s.custom) s.custom = {};
+    if (!s.custom[id]) s.custom[id] = {};
+    s.custom[id][field] = text;
+    saveState(s);
+    return s;
+  }
+  function resetCustom(id, field) {
+    var s = freshState().state;
+    if (s.custom && s.custom[id]) {
+      delete s.custom[id][field];
+      if (!s.custom[id].intro && !s.custom[id].note) delete s.custom[id];
+    }
+    saveState(s);
+    return s;
   }
 
   function loadState() {
@@ -360,11 +437,12 @@
     if (!m) return;
     document.getElementById('detailTitle').textContent = m.name + '（' + m.elem + '）';
     document.getElementById('detailSub').textContent = '等级 ' + m.level + ' · ' + fmt(m.cost) + '⭐ · ' + m.type;
-    document.getElementById('detailIntro').textContent = '介绍：' + m.intro;
+    document.getElementById('detailIntro').textContent = '介绍：' + getIntro(id);
     document.getElementById('detailTarot').textContent = m.tarot;
     document.getElementById('detailCost').textContent = fmt(m.cost) + '⭐';
     document.getElementById('detailType').textContent = m.type;
-    document.getElementById('detailNote').textContent = m.note;
+    document.getElementById('detailNote').textContent = getNote(id);
+    closeEditPanels();
     var statusEl = document.getElementById('detailStatus');
     var primaryBtn = document.getElementById('primaryActionBtn');
     var secondaryBtn = document.getElementById('secondaryActionBtn');
@@ -449,20 +527,28 @@
     }
 
     if (s.occupied[id]) {
-      delete s.occupied[id]; // 收回接地，归还
-      saveState(s);
-      renderAll(s, { animateLast: true });
-      toast(m.name + '已收回接地，归还 ' + fmt(m.cost) + '⭐');
+      // 收回接地：即时返还意愿确认后，走 5 秒收回动画再落账
+      showProgress('正在收回' + m.name + '…', 5000, function () {
+        var st = freshState().state;
+        if (st.occupied[id]) {
+          delete st.occupied[id];
+          saveState(st);
+        }
+        renderAll(st, { animateLast: true });
+        toast(m.name + '已收回接地，归还 ' + fmt(m.cost) + '⭐');
+      });
     } else {
       if (available(s) < m.cost) { toast('星不足：需要 ' + fmt(m.cost) + '⭐'); return; }
       showConfirm(OPEN_COPY[id] || ('开启' + m.name + '将占用 ' + fmt(m.cost) + '⭐，确定继续吗？'), '确认开启', function () {
-        var st = freshState().state;
-        if (st.occupied[id]) { renderAll(st); return; }
-        if (available(st) < m.cost) { toast('星不足：需要 ' + fmt(m.cost) + '⭐'); return; }
-        st.occupied[id] = m.cost;
-        saveState(st);
-        renderAll(st, { animateLast: false });
-        toast(m.name + '已开启，占用 ' + fmt(m.cost) + '⭐');
+        showProgress('正在开启' + m.name + '…', 5000, function () {
+          var st = freshState().state;
+          if (st.occupied[id]) { renderAll(st); return; }
+          if (available(st) < m.cost) { toast('星不足：需要 ' + fmt(m.cost) + '⭐'); return; }
+          st.occupied[id] = m.cost;
+          saveState(st);
+          renderAll(st, { animateLast: false });
+          toast(m.name + '已开启，占用 ' + fmt(m.cost) + '⭐');
+        });
       });
     }
   }
@@ -483,17 +569,19 @@
           renderAll(st, { animateLast: true });
           toast('浅层屏障已下线，返还 0.5⭐');
         });
-      });
+      }, 'danger');
     } else {
       if (available(s) < 0.5 - 1e-9) { toast('星不足：开启需要 0.5⭐'); return; }
       showConfirm('开启浅层屏障将占用 0.5⭐，确定继续吗？', '确认开启', function () {
-        var st = freshState().state;
-        if (st.occupied.wind) { renderAll(st); return; }
-        if (available(st) < 0.5 - 1e-9) { toast('星不足：开启需要 0.5⭐'); return; }
-        st.occupied.wind = 0.5;
-        saveState(st);
-        renderAll(st, { animateLast: false });
-        toast('浅层屏障已开启，占用 0.5⭐');
+        showProgress('浅层屏障正在开启…', 5000, function () {
+          var st = freshState().state;
+          if (st.occupied.wind) { renderAll(st); return; }
+          if (available(st) < 0.5 - 1e-9) { toast('星不足：开启需要 0.5⭐'); return; }
+          st.occupied.wind = 0.5;
+          saveState(st);
+          renderAll(st, { animateLast: false });
+          toast('浅层屏障已开启，占用 0.5⭐');
+        });
       });
     }
   }
@@ -541,6 +629,8 @@
     document.getElementById('backBtn').addEventListener('click', closeDetail);
     document.getElementById('primaryActionBtn').addEventListener('click', primaryAction);
     document.getElementById('windToggleBtn').addEventListener('click', windToggle);
+    wireEdit('intro');
+    wireEdit('note');
     document.getElementById('modalConfirmBtn').addEventListener('click', function () {
       var fn = pendingConfirm;
       hideConfirm();

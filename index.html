@@ -136,12 +136,33 @@
       </div>
       <h2 id="detailTitle">功能详情</h2>
       <p class="detail-sub" id="detailSub"></p>
-      <p class="detail-intro" id="detailIntro"></p>
+      <div class="editable-box">
+        <p class="detail-intro" id="detailIntro"></p>
+        <button class="mini-edit" id="editIntroBtn" type="button" title="编辑介绍">✏</button>
+        <div class="edit-panel" id="editIntroPanel" hidden>
+          <textarea id="editIntroText" rows="3"></textarea>
+          <div class="edit-btns">
+            <button class="px-btn small" id="saveIntroBtn" type="button">保存</button>
+            <button class="px-btn small ghost" id="cancelIntroBtn" type="button">取消</button>
+            <button class="link-btn" id="resetIntroBtn" type="button">恢复默认</button>
+          </div>
+        </div>
+      </div>
       <dl class="detail-table">
         <div><dt>对应牌</dt><dd id="detailTarot"></dd></div>
         <div><dt>消耗星级</dt><dd id="detailCost"></dd></div>
         <div><dt>消耗类型</dt><dd id="detailType"></dd></div>
-        <div><dt>备注</dt><dd id="detailNote"></dd></div>
+        <div><dt>注意事项</dt><dd><span id="detailNote"></span>
+          <button class="mini-edit" id="editNoteBtn" type="button" title="编辑注意事项">✏</button>
+          <div class="edit-panel" id="editNotePanel" hidden>
+            <textarea id="editNoteText" rows="3"></textarea>
+            <div class="edit-btns">
+              <button class="px-btn small" id="saveNoteBtn" type="button">保存</button>
+              <button class="px-btn small ghost" id="cancelNoteBtn" type="button">取消</button>
+              <button class="link-btn" id="resetNoteBtn" type="button">恢复默认</button>
+            </div>
+          </div>
+        </dd></div>
         <div><dt>当前状态</dt><dd id="detailStatus"></dd></div>
       </dl>
       <div class="detail-actions">
