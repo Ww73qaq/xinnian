@@ -9,10 +9,14 @@
   --primary-deep: #3a7bd5;
   --primary-soft: #bfe0ff;
   --glow: rgba(111, 179, 255, 0.85);
-  --star-empty: #d3e5fb;
   --line: #9ec9f7;
   --ok: #2f9e6e;
   --warn: #c26a1b;
+  --klein: #002fa7;
+  --klein-deep: #00217a;
+  --halo: rgba(147, 197, 253, 0.9);
+  --star-empty: #c9dffa;
+  --star-size: 46px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -67,20 +71,30 @@ h1 { font-size: 1.7rem; letter-spacing: 4px; color: var(--primary-deep); text-sh
 .energy-total { font-size: 1rem; color: var(--ink-soft); }
 .energy-date { font-size: 0.8rem; color: var(--ink-soft); }
 
-/* 蓝色光晕像素星 */
+/* 真像素格星星：SVG 方块 + crispEdges，克莱因蓝实心 + 浅蓝柔光晕 */
 .stars-display { display: flex; gap: 14px; justify-content: center; margin: 16px 0 12px; min-height: 56px; }
 .px-star {
-  width: 44px; height: 44px; position: relative;
-  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 70% 57%, 77% 91%, 50% 70%, 23% 91%, 30% 57%, 2% 35%, 39% 35%);
-  background: var(--star-empty);
-  transition: transform 0.12s steps(2);
+  width: var(--star-size); height: var(--star-size);
+  position: relative; flex: 0 0 auto;
 }
-.px-star.full { background: #5aa9ff; filter: drop-shadow(0 0 6px var(--glow)) drop-shadow(0 0 14px rgba(111,179,255,0.55)); }
-.px-star.full::after {
-  content: ""; position: absolute; inset: 22% 38% 38% 38%;
-  background: rgba(255,255,255,0.9);
+.px-star svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.px-star.full svg {
+  filter:
+    drop-shadow(0 0 2px rgba(255, 255, 255, 0.95))
+    drop-shadow(0 0 6px var(--halo))
+    drop-shadow(0 0 16px rgba(147, 197, 253, 0.55));
 }
-.px-star.half { background: linear-gradient(90deg, #5aa9ff 50%, var(--star-empty) 50%); filter: drop-shadow(0 0 6px var(--glow)); }
+.px-star .cover {
+  position: absolute; top: 0; left: 0;
+  width: 50%; height: 100%; overflow: hidden;
+}
+.px-star .cover svg {
+  width: var(--star-size); height: var(--star-size);
+  filter:
+    drop-shadow(0 0 2px rgba(255, 255, 255, 0.95))
+    drop-shadow(0 0 6px var(--halo));
+}
+.px-star.empty svg { opacity: 0.9; }
 .px-star.pop { animation: pxPop 0.25s steps(3); }
 @keyframes pxPop { 0% { transform: scale(0.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
 

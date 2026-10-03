@@ -8,6 +8,40 @@
 
   var TOTAL = 5;
   var STATE_KEY = 'xinnian_guard_state_v1';
+  var KLEIN = '#002fa7';
+
+  // 真像素星：9x9 方格图案（实心，无镂空）
+  var STAR_PATTERN = [
+    '....#....',
+    '....#....',
+    '....#....',
+    '...###...',
+    '#########',
+    '.#######.',
+    '..#####..',
+    '..#####..',
+    '.##...##.'
+  ];
+
+  function starSVG(fill) {
+    var rects = '';
+    for (var y = 0; y < STAR_PATTERN.length; y++) {
+      for (var x = 0; x < STAR_PATTERN[y].length; x++) {
+        if (STAR_PATTERN[y][x] === '#') {
+          rects += '<rect x="' + x + '" y="' + y + '" width="1.02" height="1.02" fill="' + fill + '"/>';
+        }
+      }
+    }
+    return '<svg viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true">' + rects + '</svg>';
+  }
+
+  function starEmptySVG() {
+    return starSVG('#c9dffa');
+  }
+
+  function starFullSVG() {
+    return starSVG(KLEIN);
+  }
 
   // 五功能信息模块（按钮上显示 等级+消耗；详情页显示 冒号内介绍 + 牌/消耗/类型/备注）
   var MODULES = {
@@ -58,7 +92,18 @@
   }
 
   function blankState() {
-    return { date: todayStr(), occupied: {}, spent: 0 };
+    // 浅层过滤层为常驻被动：每日初始即锁定 0.5，无开启/关闭按钮
+    return { date: todayStr(), occupied: { wind: 0.5 }, spent: 0 };
+  }
+
+  // 老存档迁移：同日的旧状态补上常驻风占用
+  function ensureWind(s) {
+    if (!s.occupied || typeof s.occupied !== 'object') s.occupied = {};
+    if (!s.occupied.wind) {
+      s.occupied.wind = 0.5;
+      return true;
+    }
+    return false;
   }
 
   function loadState() {
@@ -119,20 +164,29 @@
 
   function renderStars(avail, animateLast) {
     starsDisplayEl.innerHTML = '';
-    var full = Math.floor(avail);
-    var half = (avail - full) >= 0.5 ? 1 : 0;
+    var full = Math.floor(avail + 1e-9);
+    var half = (avail - full) >= 0.5 - 1e-9 ? 1 : 0;
     for (var i = 0; i < TOTAL; i++) {
-      var star = document.createElement('div');
-      star.className = 'px-star';
+      var wrap = document.createElement('div');
       var fill;
-      if (i < full) { star.classList.add('full'); fill = '满'; }
-      else if (i === full && half) { star.classList.add('half'); fill = '半颗'; }
-      else { fill = '空'; }
-      star.title = '第 ' + (i + 1) + ' 颗：' + fill;
-      star.setAttribute('role', 'img');
-      star.setAttribute('aria-label', '第 ' + (i + 1) + ' 颗' + fill);
-      if (animateLast && i === full + half - 1 && avail > 0) star.classList.add('pop');
-      starsDisplayEl.appendChild(star);
+      if (i < full) {
+        wrap.className = 'px-star full';
+        wrap.innerHTML = starFullSVG();
+        fill = '满';
+      } else if (i === full && half) {
+        wrap.className = 'px-star half';
+        wrap.innerHTML = starEmptySVG() + '<div class="cover">' + starFullSVG() + '</div>';
+        fill = '半颗';
+      } else {
+        wrap.className = 'px-star empty';
+        wrap.innerHTML = starEmptySVG();
+        fill = '空';
+      }
+      wrap.title = '第 ' + (i + 1) + ' 颗：' + fill;
+      wrap.setAttribute('role', 'img');
+      wrap.setAttribute('aria-label', '第 ' + (i + 1) + ' 颗' + fill);
+      if (animateLast && i === full + half - 1 && avail > 0) wrap.classList.add('pop');
+      starsDisplayEl.appendChild(wrap);
     }
   }
 
@@ -143,14 +197,33 @@
     renderStars(avail, opts.animateLast);
     var d = new Date();
     lastResetEl.textContent = '今天 · ' + (d.getMonth() + 1) + '月' + d.getDate() + '日 · 0点回满5颗';
-    energyHintEl.textContent = '可用 ' + fmt(avail) + '⭐ ＝ 5 − 占用 ' + fmt(occupiedSum(s)) + ' − 已消耗 ' + fmt(s.spent);
+    energyHintEl.textContent = '可用 ' + fmt(avail) + '★ ＝ 5 − 常驻 ' + fmt(s.occupied.wind || 0) + ' − 占用 ' + fmt(Math.round((occupiedSum(s) - (s.occupied.wind || 0)) * 10) / 10) + ' − 已消耗 ' + fmt(s.spent);
 
-    // 五按钮状态
+    // 加星上限：可用已顶满（无可补充的消耗）时禁用加星按钮
+    var addOneBtn = document.getElementById('addOneBtn');
+    var addHalfBtn = document.getElementById('addHalfBtn');
+    var removeHalfBtn = document.getElementById('removeHalfBtn');
+    if (addOneBtn) addOneBtn.disabled = s.spent < 1 - 1e-9;
+    if (addHalfBtn) addHalfBtn.disabled = s.spent < 0.5 - 1e-9;
+    if (removeHalfBtn) removeHalfBtn.disabled = avail < 0.5 - 1e-9;
+
+    // 五按钮状态（风为常驻被动，无开启动作）
     Object.keys(MODULES).forEach(function (id) {
       var m = MODULES[id];
       var slot = document.querySelector('[data-state-for="' + id + '"]');
       if (!slot) return;
-      if (s.occupied[id]) {
+      if (id === 'wind') {
+        slot.textContent = '● 常驻被动';
+        slot.classList.remove('locked');
+      } else if (id === 'thunder') {
+        if (avail >= m.cost) {
+          slot.textContent = '○ 可触发';
+          slot.classList.remove('locked');
+        } else {
+          slot.textContent = '× 星不足';
+          slot.classList.add('locked');
+        }
+      } else if (s.occupied[id]) {
         slot.textContent = '● 开启中 −' + fmt(m.cost);
         slot.classList.remove('locked');
       } else if (avail >= m.cost) {
@@ -179,12 +252,18 @@
     var primaryBtn = document.getElementById('primaryActionBtn');
     var secondaryBtn = document.getElementById('secondaryActionBtn');
 
-    if (id === 'thunder') {
+    if (id === 'wind') {
+      statusEl.textContent = '常驻被动运行中 · 锁定 0.5⭐（无需开启，不可关闭）';
+      primaryBtn.hidden = true;
+      secondaryBtn.hidden = true;
+    } else if (id === 'thunder') {
       statusEl.textContent = '今日已消耗 ' + fmt(s.spent) + '⭐（一次性不返还）';
+      primaryBtn.hidden = false;
       primaryBtn.textContent = '触发净化 −' + fmt(m.cost) + '⭐';
       primaryBtn.disabled = available(s) < m.cost;
       secondaryBtn.hidden = true;
     } else {
+      primaryBtn.hidden = false;
       if (s.occupied[id]) {
         statusEl.textContent = '开启中，占用 ' + fmt(m.cost) + '⭐（收回接地可归还）';
         primaryBtn.textContent = '收回接地（归还' + fmt(m.cost) + '⭐）';
@@ -212,10 +291,12 @@
 
   function primaryAction() {
     var s = checkMidnightReset(loadState()).state;
+    ensureWind(s);
     var id = currentDetailId;
     if (!id || !MODULES[id]) return;
     var m = MODULES[id];
 
+    if (id === 'wind') return; // 常驻被动，无动作
     if (id === 'thunder') {
       if (available(s) < m.cost) { toast('星不足：净化需要 ' + fmt(m.cost) + '⭐'); return; }
       s.spent = Math.round((s.spent + m.cost) * 10) / 10;
@@ -241,13 +322,15 @@
 
   function adjust(manualDelta) {
     var s = checkMidnightReset(loadState()).state;
+    ensureWind(s);
     if (manualDelta > 0) {
-      // 补星：优先抵扣瞬时消耗，上限 5
+      // 补星：只能补回已消耗部分，顶满 5 即止（按钮同步禁用）
+      if (s.spent < manualDelta - 1e-9) { toast('已满 5 颗，无法再加'); return; }
       s.spent = Math.round(Math.max(0, s.spent - manualDelta) * 10) / 10;
     } else {
       var want = Math.round((s.spent - manualDelta) * 10) / 10; // manualDelta 为负
       var maxSpent = Math.round((TOTAL - occupiedSum(s)) * 10) / 10;
-      if (want > maxSpent) { toast('取消过多：占用中资源不可透支'); return; }
+      if (want > maxSpent + 1e-9) { toast('取消过多：占用中资源不可透支'); return; }
       s.spent = want;
     }
     saveState(s);
@@ -258,6 +341,7 @@
   function init() {
     var res = checkMidnightReset(loadState());
     var s = res.state;
+    var migrated = ensureWind(s);
     saveState(s);
     renderAll(s);
 
@@ -279,7 +363,8 @@
     document.getElementById('primaryActionBtn').addEventListener('click', primaryAction);
     document.getElementById('secondaryActionBtn').addEventListener('click', primaryAction);
 
-    if (res.reset) toast('已过 0 点，能量回满 5⭐');
+    if (res.reset) toast('已过 0 点，能量回满 5⭐（浅层过滤层常驻 0.5⭐）');
+    else if (migrated) toast('浅层过滤层已转为常驻被动（锁定 0.5⭐）');
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
         navigator.serviceWorker.register('sw.js').catch(function () {});
