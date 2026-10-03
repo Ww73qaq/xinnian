@@ -2,21 +2,53 @@
   "name": "心念星辰",
   "short_name": "心念",
   "description": "记录生活中的闪耀瞬间，每日一粒星",
-  "start_url": ".",
+  "start_url": ".?",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#4a90e2",
+  "scope": ".",
   "icons": [
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0yNzIgaGVpZ2h0MTkyPSIwIiBoZWlnaHQxNzE9IjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHBzOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgPjxnIGZpbGw9IiNGNkE5MGUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDcwIiBmaWxsPSJ3aGl0ZSIvPjxwYXRoIGPVt19IiR7MTkyfSIvPjxzdHJva2U+PHJlY3QgaWQ9IlbCs2RrIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHN0cm9rZT0iIzRDOTBFIi8+PC9zdHJva2U+PC9zdmc+",
-      "sizes": "192x192",
-      "type": "image/svg+xml"
+      "src": "icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "apple-touch-icon"
     },
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0yNjHaGVpZ2h0MTkzPSIwIiBoZWlnaHQxOTM9IjAiIHZpZXdCb3g9IjAgMCA2NCA2NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHBzOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgPjxnIGZpbGw9IiNGNkE5MGUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDcwIiBmaWxsPSJ3aGl0ZSIvPjxwYXRoIGPVt19IiR7MTkzfSIvPjxzdHJva2U+PHJlY3QgaWQ9IlbCs2RrIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHN0cm9rZT0iIzRDOTBFIi8+PC9zdHJva2U+PC9zdmc+",
+      "src": "icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "icons-icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "新增一颗星",
+      "shortcut": "1",
+      "url": "/",
+      "icons": [{ "src": "icons/icon-96x96.png", "sizes": "96x96" }]
+    }
+  ],
+  "categories": ["lifestyle"]
 }

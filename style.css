@@ -113,7 +113,7 @@ header p {
 }
 
 .star-btn {
-  padding: 0.8rem 2rem;
+  padding: 0.8rem 1.5rem;
   background: var(--primary-color);
   color: white;
   border: none;
@@ -123,14 +123,43 @@ header p {
   transition: background 0.3s ease;
   width: 100%;
   max-width: 200px;
+  margin: 0.5rem auto;
 }
 
-.star-btn:hover {
-  background: #357abd;
-}
-
-.star-btn:active {
-  transform: scale(0.98);
+/* 移动端调整：增大触控目标 */
+@media (max-width: 480px) {
+  .star-btn {
+    padding: 1rem;
+    font-size: 1.1rem;
+    max-width: 100%;
+  }
+  
+  .star {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+  }
+  
+  .star::after {
+    font-size: 14px;
+  }
+  
+  header h1 {
+    font-size: 2rem;
+  }
+  
+  .container {
+    padding: 1rem;
+  }
+  
+  .stats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .star-count {
+    font-size: 2rem;
+  }
 }
 
 footer {
