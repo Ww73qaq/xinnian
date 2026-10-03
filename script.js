@@ -147,11 +147,11 @@
     }
   }
 
-  // 确认弹窗（校准专属：先弹窗文案，确认后才扣星）
+  // 确认弹窗（所有开启 / 触发类动作统一走这里，同视觉风格）
   var pendingConfirm = null;
-  function showConfirm(text, onConfirm) {
+  function showConfirm(text, confirmLabel, onConfirm) {
     document.getElementById('modalText').textContent = text;
-    document.getElementById('modalConfirmBtn').textContent = '确认';
+    document.getElementById('modalConfirmBtn').textContent = confirmLabel || '确认';
     pendingConfirm = onConfirm;
     document.getElementById('confirmModal').hidden = false;
   }
@@ -159,6 +159,26 @@
     pendingConfirm = null;
     document.getElementById('confirmModal').hidden = true;
   }
+
+  // 进度弹窗：如下线过程，5 点跳动 ms 毫秒后执行 done（不可点掉）
+  var progressActive = false;
+  function showProgress(text, ms, done) {
+    if (progressActive) return;
+    progressActive = true;
+    document.getElementById('progressText').textContent = text;
+    document.getElementById('progressModal').hidden = false;
+    setTimeout(function () {
+      document.getElementById('progressModal').hidden = true;
+      progressActive = false;
+      if (done) done();
+    }, ms);
+  }
+
+  var OPEN_COPY = {
+    water: '开启情绪隔离层将占用 1.5⭐，手动收回接地可全额归还，确定继续吗？',
+    earth: '开启深层拦截层将占用 3.0⭐，短时开启、用完请立即收回接地，确定继续吗？',
+    bow: '开启疏导释放弓晶将占用 1.5⭐，疏导结束关闭可全额归还，确定继续吗？'
+  };
 
   function closeDetail() {
     if (location.hash) {
@@ -348,19 +368,21 @@
     var statusEl = document.getElementById('detailStatus');
     var primaryBtn = document.getElementById('primaryActionBtn');
     var secondaryBtn = document.getElementById('secondaryActionBtn');
+    document.getElementById('windToggleBtn').hidden = true; // 仅风层展示右上角弱按钮
 
     if (id === 'wind') {
+      // 底部只保留日常主操作；开/关屏障弱化到右上角小按钮
       primaryBtn.hidden = false;
-      secondaryBtn.hidden = false;
-      secondaryBtn.textContent = '前往过滤器校准';
+      primaryBtn.textContent = '前往过滤器校准';
+      primaryBtn.disabled = false;
+      secondaryBtn.hidden = true;
+      var toggleBtn = document.getElementById('windToggleBtn');
+      toggleBtn.hidden = false;
+      toggleBtn.textContent = s.occupied.wind ? '⏻ 关闭屏障' : '开启屏障';
       if (s.occupied.wind) {
         statusEl.textContent = '常驻运行中 · 锁定 0.5⭐（恶意止步，善意无阻）';
-        primaryBtn.textContent = '关闭屏障（返还 0.5⭐）';
-        primaryBtn.disabled = false;
       } else {
-        statusEl.textContent = '屏障已关闭，0.5⭐已返还';
-        primaryBtn.textContent = '开启屏障 −0.5⭐';
-        primaryBtn.disabled = available(s) < 0.5 - 1e-9;
+        statusEl.textContent = '屏障已下线，0.5⭐已返还';
       }
     } else if (id === 'thunder') {
       statusEl.textContent = '今日已消耗 ' + fmt(s.spent) + '⭐（一次性不返还）';
@@ -397,33 +419,25 @@
     var m = MODULES[id];
 
     if (id === 'wind') {
-      // 每日自动开启常驻；手动关闭则全额返还 0.5⭐
-      if (s.occupied.wind) {
-        delete s.occupied.wind;
-        saveState(s);
-        renderAll(s, { animateLast: true });
-        toast('浅层屏障已关闭，返还 0.5⭐');
-      } else {
-        if (available(s) < 0.5 - 1e-9) { toast('星不足：开启需要 0.5⭐'); return; }
-        s.occupied.wind = 0.5;
-        saveState(s);
-        renderAll(s, { animateLast: false });
-        toast('浅层屏障已开启，占用 0.5⭐');
-      }
+      openDetail('calibrate'); // 底部唯一主按钮：前往过滤器校准
       return;
     }
     if (id === 'thunder') {
       if (available(s) < m.cost) { toast('星不足：净化需要 ' + fmt(m.cost) + '⭐'); return; }
-      s.spent = Math.round((s.spent + m.cost) * 10) / 10;
-      saveState(s);
-      renderAll(s, { animateLast: false });
-      toast('正雷净化已触发 −' + fmt(m.cost) + '⭐（不返还）');
+      showConfirm('触发正雷净化将一次性消耗 2.0⭐，能量不返还，确定继续吗？', '确认触发', function () {
+        var st = freshState().state;
+        if (available(st) < m.cost) { toast('星不足：净化需要 ' + fmt(m.cost) + '⭐'); return; }
+        st.spent = Math.round((st.spent + m.cost) * 10) / 10;
+        saveState(st);
+        renderAll(st, { animateLast: false });
+        toast('正雷净化已触发 −' + fmt(m.cost) + '⭐（不返还）');
+      });
       return;
     }
     if (id === 'calibrate') {
       // 前置资源校验：可用不足 0.5⭐ 直接拦截；通过则弹窗确认后再扣
       if (available(s) < m.cost - 1e-9) { toast('星不足：校准需要 0.5⭐，动作未运行'); return; }
-      showConfirm(CALIBRATE_COPY, function () {
+      showConfirm(CALIBRATE_COPY, '确认校准', function () {
         var st = freshState().state;
         if (available(st) < m.cost - 1e-9) { toast('星不足：校准需要 0.5⭐，动作未运行'); return; }
         st.spent = Math.round((st.spent + m.cost) * 10) / 10;
@@ -441,10 +455,46 @@
       toast(m.name + '已收回接地，归还 ' + fmt(m.cost) + '⭐');
     } else {
       if (available(s) < m.cost) { toast('星不足：需要 ' + fmt(m.cost) + '⭐'); return; }
-      s.occupied[id] = m.cost;
-      saveState(s);
-      renderAll(s, { animateLast: false });
-      toast(m.name + '已开启，占用 ' + fmt(m.cost) + '⭐');
+      showConfirm(OPEN_COPY[id] || ('开启' + m.name + '将占用 ' + fmt(m.cost) + '⭐，确定继续吗？'), '确认开启', function () {
+        var st = freshState().state;
+        if (st.occupied[id]) { renderAll(st); return; }
+        if (available(st) < m.cost) { toast('星不足：需要 ' + fmt(m.cost) + '⭐'); return; }
+        st.occupied[id] = m.cost;
+        saveState(st);
+        renderAll(st, { animateLast: false });
+        toast(m.name + '已开启，占用 ' + fmt(m.cost) + '⭐');
+      });
+    }
+  }
+
+  // 右上角弱按钮：风层屏障开 / 关（关：二次确认 + 5 秒五点下线动画）
+  function windToggle() {
+    if (progressActive) return;
+    var f = freshState();
+    var s = f.state;
+    if (s.occupied.wind) {
+      showConfirm('关闭后将返还 0.5⭐，屏障下线，确定继续吗？', '确认关闭', function () {
+        showProgress('浅层屏障正在下线…', 5000, function () {
+          var st = freshState().state;
+          if (st.occupied.wind) {
+            delete st.occupied.wind;
+            saveState(st);
+          }
+          renderAll(st, { animateLast: true });
+          toast('浅层屏障已下线，返还 0.5⭐');
+        });
+      });
+    } else {
+      if (available(s) < 0.5 - 1e-9) { toast('星不足：开启需要 0.5⭐'); return; }
+      showConfirm('开启浅层屏障将占用 0.5⭐，确定继续吗？', '确认开启', function () {
+        var st = freshState().state;
+        if (st.occupied.wind) { renderAll(st); return; }
+        if (available(st) < 0.5 - 1e-9) { toast('星不足：开启需要 0.5⭐'); return; }
+        st.occupied.wind = 0.5;
+        saveState(st);
+        renderAll(st, { animateLast: false });
+        toast('浅层屏障已开启，占用 0.5⭐');
+      });
     }
   }
 
@@ -490,9 +540,7 @@
 
     document.getElementById('backBtn').addEventListener('click', closeDetail);
     document.getElementById('primaryActionBtn').addEventListener('click', primaryAction);
-    document.getElementById('secondaryActionBtn').addEventListener('click', function () {
-      if (currentDetailId === 'wind') openDetail('calibrate'); // 仅浅层展示校准入口
-    });
+    document.getElementById('windToggleBtn').addEventListener('click', windToggle);
     document.getElementById('modalConfirmBtn').addEventListener('click', function () {
       var fn = pendingConfirm;
       hideConfirm();

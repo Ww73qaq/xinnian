@@ -130,7 +130,10 @@
 
     <!-- 详情页（同一文件内的独立页面，hash 路由切换） -->
     <section class="px-card detail-view" id="detailView" hidden aria-label="功能详情">
-      <button class="px-btn small ghost" id="backBtn" type="button">← 返回</button>
+      <div class="detail-topbar">
+        <button class="px-btn small ghost" id="backBtn" type="button">← 返回</button>
+        <button class="weak-btn" id="windToggleBtn" type="button" hidden>⏻ 关闭屏障</button>
+      </div>
       <h2 id="detailTitle">功能详情</h2>
       <p class="detail-sub" id="detailSub"></p>
       <p class="detail-intro" id="detailIntro"></p>
@@ -163,6 +166,14 @@
         <button class="px-btn small" id="modalConfirmBtn" type="button">确认</button>
         <button class="px-btn small ghost" id="modalCancelBtn" type="button">取消</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 进度弹窗（如下线过程，与确认弹窗同风格） -->
+  <div class="modal-mask" id="progressModal" hidden>
+    <div class="px-card modal-card progress-card" role="status" aria-live="polite">
+      <p id="progressText">正在处理…</p>
+      <div class="dots" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
     </div>
   </div>
 
