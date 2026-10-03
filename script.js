@@ -10,38 +10,54 @@
   var STATE_KEY = 'xinnian_guard_state_v1';
   var KLEIN = '#002fa7';
 
-  // 真像素星：9x9 方格图案（实心，无镂空）
-  var STAR_PATTERN = [
-    '....#....',
-    '....#....',
-    '....#....',
-    '...###...',
-    '#########',
-    '.#######.',
-    '..#####..',
-    '..#####..',
-    '.##...##.'
-  ];
+  // 真像素星：24x24 细格光栅化标准正五角星（顶点朝上，内外径比 0.382）
+  var STAR_N = 24;
+  var STAR_CX = 12;
+  var STAR_CY = 12;
+  var STAR_R = 11.4;
+  var STAR_POLY = (function () {
+    var pts = [];
+    var r = STAR_R * 0.382;
+    for (var i = 0; i < 10; i++) {
+      var ang = -Math.PI / 2 + (i * Math.PI) / 5;
+      var rad = i % 2 === 0 ? STAR_R : r;
+      pts.push([STAR_CX + rad * Math.cos(ang), STAR_CY + rad * Math.sin(ang)]);
+    }
+    return pts;
+  })();
 
-  function starSVG(fill) {
-    var rects = '';
-    for (var y = 0; y < STAR_PATTERN.length; y++) {
-      for (var x = 0; x < STAR_PATTERN[y].length; x++) {
-        if (STAR_PATTERN[y][x] === '#') {
-          rects += '<rect x="' + x + '" y="' + y + '" width="1.02" height="1.02" fill="' + fill + '"/>';
-        }
+  function inStar(x, y) {
+    var inside = false;
+    var n = STAR_POLY.length;
+    for (var i = 0, j = n - 1; i < n; j = i++) {
+      var xi = STAR_POLY[i][0], yi = STAR_POLY[i][1];
+      var xj = STAR_POLY[j][0], yj = STAR_POLY[j][1];
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+        inside = !inside;
       }
     }
-    return '<svg viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true">' + rects + '</svg>';
+    return inside;
   }
 
-  function starEmptySVG() {
-    return starSVG('#c9dffa');
+  // kind: 'full' | 'half' | 'empty'；半颗以第 12 列为界，格子级精确对半
+  function buildStarSVG(kind) {
+    var rects = '';
+    for (var row = 0; row < STAR_N; row++) {
+      for (var col = 0; col < STAR_N; col++) {
+        if (!inStar(col + 0.5, row + 0.5)) continue;
+        var fill;
+        if (kind === 'full') fill = KLEIN;
+        else if (kind === 'half') fill = col < STAR_N / 2 ? KLEIN : '#c9dffa';
+        else fill = '#c9dffa';
+        rects += '<rect x="' + col + '" y="' + row + '" width="1.02" height="1.02" fill="' + fill + '"/>';
+      }
+    }
+    return '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" aria-hidden="true">' + rects + '</svg>';
   }
 
-  function starFullSVG() {
-    return starSVG(KLEIN);
-  }
+  var STAR_SVG_FULL = buildStarSVG('full');
+  var STAR_SVG_HALF = buildStarSVG('half');
+  var STAR_SVG_EMPTY = buildStarSVG('empty');
 
   // 五功能信息模块（按钮上显示 等级+消耗；详情页显示 冒号内介绍 + 牌/消耗/类型/备注）
   var MODULES = {
@@ -84,7 +100,62 @@
   var lastResetEl = document.getElementById('lastReset');
   var energyHintEl = document.getElementById('energyHint');
   var detailView = document.getElementById('detailView');
+  var homeView = document.getElementById('homeView');
   var currentDetailId = null;
+
+  // 单文件双页面路由：首页 #homeView 与详情页 #detailView 二选一展示
+  function freshState() {
+    var res = checkMidnightReset(loadState());
+    var st = res.state;
+    ensureWind(st);
+    saveState(st);
+    return { state: st, reset: res.reset };
+  }
+
+  function showHomePage() {
+    currentDetailId = null;
+    detailView.hidden = true;
+    homeView.hidden = false;
+  }
+
+  function showDetailPage(id) {
+    if (!MODULES[id]) return;
+    currentDetailId = id;
+    homeView.hidden = true;
+    detailView.hidden = false;
+    renderDetail(freshState().state, id);
+    detailView.classList.remove('page-enter');
+    void detailView.offsetWidth;
+    detailView.classList.add('page-enter');
+    window.scrollTo(0, 0);
+  }
+
+  function openDetail(id) {
+    var target = '#m-' + id;
+    if (location.hash === target) {
+      showDetailPage(id);
+    } else {
+      location.hash = target; // 经由 hashchange 进入详情页，支持浏览器返回键
+    }
+  }
+
+  function closeDetail() {
+    if (location.hash) {
+      history.back();
+    } else {
+      showHomePage();
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function route() {
+    var m = /^#m-(wind|water|earth|thunder|bow)$/.exec(location.hash);
+    if (m) {
+      showDetailPage(m[1]);
+    } else {
+      showHomePage();
+    }
+  }
 
   function todayStr() {
     var d = new Date();
@@ -171,15 +242,15 @@
       var fill;
       if (i < full) {
         wrap.className = 'px-star full';
-        wrap.innerHTML = starFullSVG();
+        wrap.innerHTML = STAR_SVG_FULL;
         fill = '满';
       } else if (i === full && half) {
         wrap.className = 'px-star half';
-        wrap.innerHTML = starEmptySVG() + '<div class="cover">' + starFullSVG() + '</div>';
+        wrap.innerHTML = STAR_SVG_HALF;
         fill = '半颗';
       } else {
         wrap.className = 'px-star empty';
-        wrap.innerHTML = starEmptySVG();
+        wrap.innerHTML = STAR_SVG_EMPTY;
         fill = '空';
       }
       wrap.title = '第 ' + (i + 1) + ' 颗：' + fill;
@@ -235,7 +306,7 @@
       }
     });
 
-    if (currentDetailId) renderDetail(s, currentDetailId);
+    if (currentDetailId && !detailView.hidden) renderDetail(s, currentDetailId);
   }
 
   function renderDetail(s, id) {
@@ -275,18 +346,6 @@
         secondaryBtn.hidden = true;
       }
     }
-  }
-
-  function openDetail(s, id) {
-    currentDetailId = id;
-    renderDetail(s, id);
-    detailView.hidden = false;
-    detailView.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function closeDetail() {
-    currentDetailId = null;
-    detailView.hidden = true;
   }
 
   function primaryAction() {
@@ -344,6 +403,8 @@
     var migrated = ensureWind(s);
     saveState(s);
     renderAll(s);
+    route(); // 支持带 #m-xxx 直连进入详情页
+    window.addEventListener('hashchange', route);
 
     document.getElementById('addOneBtn').addEventListener('click', function () { adjust(1); });
     document.getElementById('addHalfBtn').addEventListener('click', function () { adjust(0.5); });
@@ -352,10 +413,9 @@
     var btns = document.querySelectorAll('.func-btn');
     Array.prototype.forEach.call(btns, function (b) {
       b.addEventListener('click', function () {
-        var fresh = checkMidnightReset(loadState()).state;
-        saveState(fresh);
+        var fresh = freshState().state;
         renderAll(fresh);
-        openDetail(fresh, b.getAttribute('data-module'));
+        openDetail(b.getAttribute('data-module'));
       });
     });
 

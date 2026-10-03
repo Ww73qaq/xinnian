@@ -84,15 +84,10 @@ h1 { font-size: 1.7rem; letter-spacing: 4px; color: var(--primary-deep); text-sh
     drop-shadow(0 0 6px var(--halo))
     drop-shadow(0 0 16px rgba(147, 197, 253, 0.55));
 }
-.px-star .cover {
-  position: absolute; top: 0; left: 0;
-  width: 50%; height: 100%; overflow: hidden;
-}
-.px-star .cover svg {
-  width: var(--star-size); height: var(--star-size);
+.px-star.half svg {
   filter:
-    drop-shadow(0 0 2px rgba(255, 255, 255, 0.95))
-    drop-shadow(0 0 6px var(--halo));
+    drop-shadow(0 0 2px rgba(255, 255, 255, 0.9))
+    drop-shadow(0 0 5px rgba(147, 197, 253, 0.7));
 }
 .px-star.empty svg { opacity: 0.9; }
 .px-star.pop { animation: pxPop 0.25s steps(3); }
@@ -131,7 +126,9 @@ h1 { font-size: 1.7rem; letter-spacing: 4px; color: var(--primary-deep); text-sh
 .func-state.locked { color: var(--warn); }
 
 /* 详情 */
-.detail-view { margin-top: 16px; }
+.detail-view { margin-top: 4px; }
+.detail-view.page-enter { animation: pageIn 0.18s steps(4); }
+@keyframes pageIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: none; } }
 .detail-view h2 { font-size: 1.15rem; letter-spacing: 2px; margin: 10px 0 2px; color: var(--primary-deep); }
 .detail-sub { color: var(--ink-soft); font-size: 0.8rem; margin-bottom: 8px; }
 .detail-intro {
