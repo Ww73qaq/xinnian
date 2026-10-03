@@ -86,7 +86,7 @@
       note: '启动后10秒执行净化流程，执行途中可随时取消终止；属于一次性操作，完成自动结束，不会持续占用星星资源。'
     },
     bow: {
-      name: '疏导释放弓箭', elem: '晶', level: '瞬时',
+      name: '疏导释放弓箭', elem: '', level: '瞬时',
       tarot: '圣杯九（正）', cost: 1.5, type: '蓄力锁定，射出消耗',
       intro: '心念蓄力，疏导多余感知能量向外释放；蓄力阶段能量可控，释放射出后能量不可回收。',
       note: '开启进入10秒蓄力倒计时，蓄力期间可随时取消，能量收回、资源返还；释放动作完成后，能量向外疏导。释放一旦射出，不可撤回，能量无法收回。'
@@ -590,7 +590,7 @@
   function renderDetail(s, id) {
     var m = MODULES[id];
     if (!m) return;
-    document.getElementById('detailTitle').textContent = m.name + '（' + m.elem + '）';
+    document.getElementById('detailTitle').textContent = m.elem ? m.name + '（' + m.elem + '）' : m.name;
     appendStarred(document.getElementById('detailSub'), '等级 ' + m.level + ' · ' + fmt(m.cost) + '⭐ · ' + m.type);
     appendStarred(document.getElementById('detailIntro'), '介绍：' + getIntro(id));
     document.getElementById('detailTarot').textContent = m.tarot;
