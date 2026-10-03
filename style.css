@@ -1,0 +1,148 @@
+:root {
+  --primary-color: #4a90e2;
+  --secondary-color: #7b68ee;
+  --background: #f5f7fa;
+  --card: #ffffff;
+  --text: #333333;
+  --success: #4cd964;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--background);
+  min-height: 100vh;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+header p {
+  color: #666;
+  font-size: 1rem;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.star-count {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.last-reset {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.stars-display {
+  min-height: 80px;
+  margin: 1.5rem 0;
+}
+
+.star {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  background: #ffe66d;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 70% 57%, 77% 91%, 50% 70%, 23% 91%, 30% 57%, 2% 35%, 39% 35%);
+  margin: 2px;
+  position: relative;
+  animation: popIn 0.3s ease forwards;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.star::after {
+  content: '★';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #ffd700;
+  text-shadow: 0 0 4px rgba(255,255,255,0.8);
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.actions {
+  text-align: center;
+}
+
+.star-btn {
+  padding: 0.8rem 2rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  width: 100%;
+  max-width: 200px;
+}
+
+.star-btn:hover {
+  background: #357abd;
+}
+
+.star-btn:active {
+  transform: scale(0.98);
+}
+
+footer {
+  margin-top: 2rem;
+  text-align: center;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .star {
+    animation: none;
+  }
+}
