@@ -42,7 +42,7 @@ body {
   image-rendering: pixelated;
 }
 
-.container { max-width: 560px; margin: 0 auto; padding: 20px 16px 32px; }
+.container { max-width: 560px; margin: 0 auto; padding: 20px 16px 110px; }
 
 .px-header { text-align: center; margin: 8px 0 18px; }
 .px-logo { display: flex; gap: 6px; justify-content: center; margin-bottom: 8px; }
@@ -144,19 +144,39 @@ h1 { font-size: 1.7rem; letter-spacing: 4px; color: var(--primary-deep); text-sh
 .detail-actions { display: flex; gap: 10px; margin-top: 14px; }
 .detail-actions .px-btn { flex: 1; }
 
-footer { margin-top: 18px; text-align: center; color: var(--ink-soft); font-size: 0.75rem; }
+footer {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  text-align: center; color: var(--ink-soft); font-size: 0.75rem;
+  background: rgba(234, 243, 255, 0.96);
+  border-top: 2px solid var(--line);
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+}
 
 .toast {
-  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+  position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%) translateY(20px);
   background: var(--ink); color: #fff; font-size: 0.82rem;
   padding: 10px 14px; border: 3px solid #fff; opacity: 0; pointer-events: none;
   max-width: 90vw; text-align: center; transition: opacity 0.2s, transform 0.2s;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+/* 确认弹窗 */
+.modal-mask {
+  position: fixed; inset: 0; z-index: 20;
+  background: rgba(47, 74, 107, 0.45);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-mask[hidden] { display: none; }
+.modal-card { max-width: 420px; width: 100%; }
+.modal-card h3 { font-size: 1rem; letter-spacing: 2px; color: var(--primary-deep); margin-bottom: 8px; }
+.modal-card p { font-size: 0.85rem; margin-bottom: 14px; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-actions .px-btn { flex: 1; }
+
 /* 手机端 */
 @media (max-width: 480px) {
-  .container { padding: 14px 12px 28px; }
+  .container { padding: 14px 12px 110px; }
   h1 { font-size: 1.45rem; }
   .px-star { width: 40px; height: 40px; }
   .stars-display { gap: 10px; }

@@ -90,8 +90,16 @@
       tarot: '圣杯九（正）', cost: 1.5, type: '按需占用',
       intro: '疏导释放，能量导出后再回收。',
       note: '疏导动作结束，资源归还。'
+    },
+    calibrate: {
+      name: '过滤器校准', elem: '风', level: '瞬时',
+      tarot: '圣杯国王（正）', cost: 0.5, type: '瞬时一次性消耗',
+      intro: '重置浅层识别判定，刷新白名单身份校验，清理滞留杂讯。浅层屏障维持开启，不会中断基础防护。',
+      note: '触发直接扣除，能量不可返还。'
     }
   };
+
+  var CALIBRATE_COPY = '过滤器校准：一次性消耗0.5⭐。重置浅层识别判定，刷新白名单身份校验，清理滞留杂讯。浅层屏障维持开启，不会中断基础防护。消耗能量不可回收。';
 
   var OCCUPY_IDS = ['wind', 'water', 'earth', 'bow'];
 
@@ -139,6 +147,19 @@
     }
   }
 
+  // 确认弹窗（校准专属：先弹窗文案，确认后才扣星）
+  var pendingConfirm = null;
+  function showConfirm(text, onConfirm) {
+    document.getElementById('modalText').textContent = text;
+    document.getElementById('modalConfirmBtn').textContent = '确认';
+    pendingConfirm = onConfirm;
+    document.getElementById('confirmModal').hidden = false;
+  }
+  function hideConfirm() {
+    pendingConfirm = null;
+    document.getElementById('confirmModal').hidden = true;
+  }
+
   function closeDetail() {
     if (location.hash) {
       history.back();
@@ -149,7 +170,7 @@
   }
 
   function route() {
-    var m = /^#m-(wind|water|earth|thunder|bow)$/.exec(location.hash);
+    var m = /^#m-(wind|water|earth|thunder|bow|calibrate)$/.exec(location.hash);
     if (m) {
       showDetailPage(m[1]);
     } else {
@@ -278,15 +299,20 @@
     if (addHalfBtn) addHalfBtn.disabled = s.spent < 0.5 - 1e-9;
     if (removeHalfBtn) removeHalfBtn.disabled = avail < 0.5 - 1e-9;
 
-    // 五按钮状态（风为常驻被动，无开启动作）
+    // 六按钮状态（风层每日自动开启，可手动关闭返还）
     Object.keys(MODULES).forEach(function (id) {
       var m = MODULES[id];
       var slot = document.querySelector('[data-state-for="' + id + '"]');
       if (!slot) return;
       if (id === 'wind') {
-        slot.textContent = '● 常驻被动';
-        slot.classList.remove('locked');
-      } else if (id === 'thunder') {
+        if (s.occupied.wind) {
+          slot.textContent = '● 常驻运行中';
+          slot.classList.remove('locked');
+        } else {
+          slot.textContent = '○ 可开启';
+          slot.classList.remove('locked');
+        }
+      } else if (id === 'thunder' || id === 'calibrate') {
         if (avail >= m.cost) {
           slot.textContent = '○ 可触发';
           slot.classList.remove('locked');
@@ -324,14 +350,29 @@
     var secondaryBtn = document.getElementById('secondaryActionBtn');
 
     if (id === 'wind') {
-      statusEl.textContent = '常驻被动运行中 · 锁定 0.5⭐（无需开启，不可关闭）';
-      primaryBtn.hidden = true;
-      secondaryBtn.hidden = true;
+      primaryBtn.hidden = false;
+      secondaryBtn.hidden = false;
+      secondaryBtn.textContent = '前往过滤器校准';
+      if (s.occupied.wind) {
+        statusEl.textContent = '常驻运行中 · 锁定 0.5⭐（恶意止步，善意无阻）';
+        primaryBtn.textContent = '关闭屏障（返还 0.5⭐）';
+        primaryBtn.disabled = false;
+      } else {
+        statusEl.textContent = '屏障已关闭，0.5⭐已返还';
+        primaryBtn.textContent = '开启屏障 −0.5⭐';
+        primaryBtn.disabled = available(s) < 0.5 - 1e-9;
+      }
     } else if (id === 'thunder') {
       statusEl.textContent = '今日已消耗 ' + fmt(s.spent) + '⭐（一次性不返还）';
       primaryBtn.hidden = false;
       primaryBtn.textContent = '触发净化 −' + fmt(m.cost) + '⭐';
       primaryBtn.disabled = available(s) < m.cost;
+      secondaryBtn.hidden = true;
+    } else if (id === 'calibrate') {
+      statusEl.textContent = '浅层专属维护 · 屏障保持开启 · 今日已消耗 ' + fmt(s.spent) + '⭐';
+      primaryBtn.hidden = false;
+      primaryBtn.textContent = '触发校准 −' + fmt(m.cost) + '⭐';
+      primaryBtn.disabled = available(s) < m.cost - 1e-9;
       secondaryBtn.hidden = true;
     } else {
       primaryBtn.hidden = false;
@@ -355,13 +396,41 @@
     if (!id || !MODULES[id]) return;
     var m = MODULES[id];
 
-    if (id === 'wind') return; // 常驻被动，无动作
+    if (id === 'wind') {
+      // 每日自动开启常驻；手动关闭则全额返还 0.5⭐
+      if (s.occupied.wind) {
+        delete s.occupied.wind;
+        saveState(s);
+        renderAll(s, { animateLast: true });
+        toast('浅层屏障已关闭，返还 0.5⭐');
+      } else {
+        if (available(s) < 0.5 - 1e-9) { toast('星不足：开启需要 0.5⭐'); return; }
+        s.occupied.wind = 0.5;
+        saveState(s);
+        renderAll(s, { animateLast: false });
+        toast('浅层屏障已开启，占用 0.5⭐');
+      }
+      return;
+    }
     if (id === 'thunder') {
       if (available(s) < m.cost) { toast('星不足：净化需要 ' + fmt(m.cost) + '⭐'); return; }
       s.spent = Math.round((s.spent + m.cost) * 10) / 10;
       saveState(s);
       renderAll(s, { animateLast: false });
       toast('正雷净化已触发 −' + fmt(m.cost) + '⭐（不返还）');
+      return;
+    }
+    if (id === 'calibrate') {
+      // 前置资源校验：可用不足 0.5⭐ 直接拦截；通过则弹窗确认后再扣
+      if (available(s) < m.cost - 1e-9) { toast('星不足：校准需要 0.5⭐，动作未运行'); return; }
+      showConfirm(CALIBRATE_COPY, function () {
+        var st = freshState().state;
+        if (available(st) < m.cost - 1e-9) { toast('星不足：校准需要 0.5⭐，动作未运行'); return; }
+        st.spent = Math.round((st.spent + m.cost) * 10) / 10;
+        saveState(st);
+        renderAll(st, { animateLast: false });
+        toast('过滤器校准完成 −0.5⭐（不返还）');
+      });
       return;
     }
 
@@ -421,10 +490,21 @@
 
     document.getElementById('backBtn').addEventListener('click', closeDetail);
     document.getElementById('primaryActionBtn').addEventListener('click', primaryAction);
-    document.getElementById('secondaryActionBtn').addEventListener('click', primaryAction);
+    document.getElementById('secondaryActionBtn').addEventListener('click', function () {
+      if (currentDetailId === 'wind') openDetail('calibrate'); // 仅浅层展示校准入口
+    });
+    document.getElementById('modalConfirmBtn').addEventListener('click', function () {
+      var fn = pendingConfirm;
+      hideConfirm();
+      if (fn) fn();
+    });
+    document.getElementById('modalCancelBtn').addEventListener('click', hideConfirm);
+    document.getElementById('confirmModal').addEventListener('click', function (e) {
+      if (e.target === this) hideConfirm();
+    });
 
-    if (res.reset) toast('已过 0 点，能量回满 5⭐（浅层过滤层常驻 0.5⭐）');
-    else if (migrated) toast('浅层过滤层已转为常驻被动（锁定 0.5⭐）');
+    if (res.reset) toast('已过 0 点，能量回满 5⭐（浅层过滤层自动常驻 0.5⭐）');
+    else if (migrated) toast('浅层过滤层已纳入常驻（每日自动开启）');
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
         navigator.serviceWorker.register('sw.js').catch(function () {});

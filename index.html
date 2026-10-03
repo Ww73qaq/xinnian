@@ -110,6 +110,19 @@
               <span class="func-cost">1.5★ 按需</span>
               <span class="func-state" data-state-for="bow"></span>
             </button>
+
+            <button class="px-card func-btn" type="button" data-module="calibrate">
+              <span class="func-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                  <path d="M4 8h9M19 8h1M4 16h3M13 16h7"/>
+                  <circle cx="15.5" cy="8" r="2.2"/><circle cx="9.5" cy="16" r="2.2"/>
+                </svg>
+              </span>
+              <span class="func-name">过滤器校准</span>
+              <span class="func-elem">风 · 瞬时</span>
+              <span class="func-cost">0.5★ 一次性</span>
+              <span class="func-state" data-state-for="calibrate"></span>
+            </button>
           </div>
         </section>
       </main>
@@ -140,6 +153,19 @@
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- 校准确认弹窗 -->
+  <div class="modal-mask" id="confirmModal" hidden>
+    <div class="px-card modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h3 id="modalTitle">触发确认</h3>
+      <p id="modalText"></p>
+      <div class="modal-actions">
+        <button class="px-btn small" id="modalConfirmBtn" type="button">确认</button>
+        <button class="px-btn small ghost" id="modalCancelBtn" type="button">取消</button>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
