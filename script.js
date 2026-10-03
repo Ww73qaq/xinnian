@@ -128,7 +128,7 @@
     ol.innerHTML = '';
     rules.forEach(function (r) {
       var li = document.createElement('li');
-      li.textContent = r;
+      appendStarred(li, r);
       ol.appendChild(li);
     });
   }
@@ -202,7 +202,7 @@
   // 确认弹窗（所有开启 / 触发类动作统一走这里，同视觉风格；tone='danger' 仅关闭类用红色）
   var pendingConfirm = null;
   function showConfirm(text, confirmLabel, onConfirm, tone) {
-    document.getElementById('modalText').textContent = text;
+    appendStarred(document.getElementById('modalText'), text);
     var btn = document.getElementById('modalConfirmBtn');
     btn.textContent = confirmLabel || '确认';
     if (tone === 'danger') btn.classList.add('danger');
@@ -480,10 +480,25 @@
     return (Math.round(n * 10) / 10).toFixed(1).replace(/\.0$/, '');
   }
 
+  // 行内蓝色实体小星（SVG，非 emoji，各端渲染一致；用户文本经转义后插入防注入）
+  var MINI_STAR_SVG = '<svg class="mini-star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"/></svg>';
+  function appendStarred(el, text) {
+    el.textContent = '';
+    String(text).split(/([⭐★])/).forEach(function (part) {
+      if (part === '⭐' || part === '★') {
+        var holder = document.createElement('span');
+        holder.innerHTML = MINI_STAR_SVG;
+        el.appendChild(holder.firstChild);
+      } else if (part) {
+        el.appendChild(document.createTextNode(part));
+      }
+    });
+  }
+
   function toast(msg) {
     var el = document.getElementById('toast');
     if (!el) return;
-    el.textContent = msg;
+    appendStarred(el, msg);
     el.classList.add('show');
     setTimeout(function () { el.classList.remove('show'); }, 2200);
   }
@@ -523,7 +538,7 @@
     renderStars(avail, opts.animateLast);
     var d = new Date();
     lastResetEl.textContent = '今天 · ' + (d.getMonth() + 1) + '月' + d.getDate() + '日 · 0点回满5颗';
-    energyHintEl.textContent = '可用 ' + fmt(avail) + '★ ＝ 5 − 常驻 ' + fmt(s.occupied.wind || 0) + ' − 占用 ' + fmt(Math.round((occupiedSum(s) - (s.occupied.wind || 0)) * 10) / 10) + ' − 已消耗 ' + fmt(s.spent) + (pendingLock(s) > 0 ? ' − 锁定 ' + fmt(pendingLock(s)) : '');
+    appendStarred(energyHintEl, '可用 ' + fmt(avail) + '★ ＝ 5 − 常驻 ' + fmt(s.occupied.wind || 0) + ' − 占用 ' + fmt(Math.round((occupiedSum(s) - (s.occupied.wind || 0)) * 10) / 10) + ' − 已消耗 ' + fmt(s.spent) + (pendingLock(s) > 0 ? ' − 锁定 ' + fmt(pendingLock(s)) : ''));
 
     // 加星上限：可用已顶满（无可补充的消耗）时禁用加星按钮
     var addOneBtn = document.getElementById('addOneBtn');
@@ -576,12 +591,12 @@
     var m = MODULES[id];
     if (!m) return;
     document.getElementById('detailTitle').textContent = m.name + '（' + m.elem + '）';
-    document.getElementById('detailSub').textContent = '等级 ' + m.level + ' · ' + fmt(m.cost) + '⭐ · ' + m.type;
-    document.getElementById('detailIntro').textContent = '介绍：' + getIntro(id);
+    appendStarred(document.getElementById('detailSub'), '等级 ' + m.level + ' · ' + fmt(m.cost) + '⭐ · ' + m.type);
+    appendStarred(document.getElementById('detailIntro'), '介绍：' + getIntro(id));
     document.getElementById('detailTarot').textContent = m.tarot;
-    document.getElementById('detailCost').textContent = fmt(m.cost) + '⭐';
+    appendStarred(document.getElementById('detailCost'), fmt(m.cost) + '⭐');
     document.getElementById('detailType').textContent = m.type;
-    document.getElementById('detailNote').textContent = getNote(id);
+    appendStarred(document.getElementById('detailNote'), getNote(id));
     closeEditPanels();
     var statusEl = document.getElementById('detailStatus');
     var primaryBtn = document.getElementById('primaryActionBtn');
@@ -601,36 +616,36 @@
       toggleBtn.hidden = false;
       toggleBtn.textContent = s.occupied.wind ? '⏻ 关闭屏障' : '开启屏障';
       if (s.occupied.wind) {
-        statusEl.textContent = '常驻运行中 · 锁定 0.5⭐（恶意止步，善意无阻）';
+        appendStarred(statusEl, '常驻运行中 · 锁定 0.5⭐（恶意止步，善意无阻）');
       } else {
-        statusEl.textContent = '屏障已下线，0.5⭐已返还';
+        appendStarred(statusEl, '屏障已下线，0.5⭐已返还');
       }
     } else if (id === 'thunder') {
-      statusEl.textContent = pendingHere ? '净化蓄力中…倒计时内可取消' : '今日已消耗 ' + fmt(s.spent) + '⭐（一次性不返还）';
+      appendStarred(statusEl, pendingHere ? '净化蓄力中…倒计时内可取消' : '今日已消耗 ' + fmt(s.spent) + '⭐（一次性不返还）');
       primaryBtn.hidden = false;
       primaryBtn.textContent = '启动净化（10秒蓄力）';
       primaryBtn.disabled = available(s) < m.cost - 1e-9;
       secondaryBtn.hidden = true;
     } else if (id === 'bow') {
-      statusEl.textContent = pendingHere ? '疏导蓄力中…倒计时内取消可全额返还' : '未蓄力 · 射出后能量不可回收';
+      appendStarred(statusEl, pendingHere ? '疏导蓄力中…倒计时内取消可全额返还' : '未蓄力 · 射出后能量不可回收');
       primaryBtn.hidden = false;
       primaryBtn.textContent = '启动蓄力（10秒）';
       primaryBtn.disabled = available(s) < m.cost - 1e-9;
       secondaryBtn.hidden = true;
     } else if (id === 'calibrate') {
-      statusEl.textContent = '浅层专属维护 · 屏障保持开启 · 今日已消耗 ' + fmt(s.spent) + '⭐';
+      appendStarred(statusEl, '浅层专属维护 · 屏障保持开启 · 今日已消耗 ' + fmt(s.spent) + '⭐');
       primaryBtn.hidden = false;
-      primaryBtn.textContent = '触发校准 −' + fmt(m.cost) + '⭐';
+      appendStarred(primaryBtn, '触发校准 −' + fmt(m.cost) + '⭐');
       primaryBtn.disabled = available(s) < m.cost - 1e-9;
       secondaryBtn.hidden = true;
     } else if (id === 'earth') {
       primaryBtn.hidden = false;
       if (s.occupied.earth) {
-        statusEl.textContent = pendingHere ? '屏障卸除中…倒计时内可取消' : '开启中，占用 ' + fmt(m.cost) + '⭐（收回接地可归还）';
+        appendStarred(statusEl, pendingHere ? '屏障卸除中…倒计时内可取消' : '开启中，占用 ' + fmt(m.cost) + '⭐（收回接地可归还）');
         primaryBtn.textContent = '收回接地（5秒卸除）';
         primaryBtn.disabled = false;
       } else {
-        statusEl.textContent = pendingHere ? '屏障拉起中…倒计时内可取消' : (available(s) >= m.cost - 1e-9 ? '未开启，可手动开启' : '星不足，无法开启（需 ' + fmt(m.cost) + '⭐）');
+        appendStarred(statusEl, pendingHere ? '屏障拉起中…倒计时内可取消' : (available(s) >= m.cost - 1e-9 ? '未开启，可手动开启' : '星不足，无法开启（需 ' + fmt(m.cost) + '⭐）'));
         primaryBtn.textContent = '常规开启（10秒）';
         primaryBtn.disabled = available(s) < m.cost - 1e-9;
         altBtn.hidden = false;
@@ -641,12 +656,12 @@
     } else {
       primaryBtn.hidden = false;
       if (s.occupied[id]) {
-        statusEl.textContent = pendingHere ? '屏障卸除中…倒计时内可取消' : '开启中，占用 ' + fmt(m.cost) + '⭐（收回接地可归还）';
+        appendStarred(statusEl, pendingHere ? '屏障卸除中…倒计时内可取消' : '开启中，占用 ' + fmt(m.cost) + '⭐（收回接地可归还）');
         primaryBtn.textContent = '收回接地（5秒卸除）';
         primaryBtn.disabled = false;
         secondaryBtn.hidden = true;
       } else {
-        statusEl.textContent = pendingHere ? '屏障拉起中…倒计时内可取消' : (available(s) >= m.cost ? '未开启，可手动开启' : '星不足，无法开启（需 ' + fmt(m.cost) + '⭐）');
+        appendStarred(statusEl, pendingHere ? '屏障拉起中…倒计时内可取消' : (available(s) >= m.cost ? '未开启，可手动开启' : '星不足，无法开启（需 ' + fmt(m.cost) + '⭐）'));
         primaryBtn.textContent = '开启（10秒蓄力）';
         primaryBtn.disabled = available(s) < m.cost;
         secondaryBtn.hidden = true;

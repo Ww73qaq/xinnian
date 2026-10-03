@@ -193,12 +193,19 @@ footer {
 .editable-box { position: relative; }
 .mini-edit {
   position: absolute; top: 6px; right: 6px;
-  font-size: 0.75rem; line-height: 1;
-  background: rgba(255, 255, 255, 0.85);
+  line-height: 1; color: var(--primary-deep);
+  background: rgba(255, 255, 255, 0.9);
   border: 2px solid var(--line); border-radius: 2px;
-  padding: 3px 6px; cursor: pointer; color: var(--ink-soft);
+  padding: 4px; cursor: pointer;
 }
+.mini-edit svg { width: 14px; height: 14px; display: block; }
 .detail-table .mini-edit { top: 2px; }
+
+/* 行内蓝色实体小星（非像素，用于消耗/状态等文字） */
+.mini-star {
+  width: 0.95em; height: 0.95em;
+  fill: #3a7bd5; vertical-align: -0.13em;
+}
 .edit-panel { margin-top: 8px; }
 .edit-panel[hidden] { display: none; }
 .edit-panel textarea {
@@ -226,7 +233,12 @@ footer {
 .help-view h2 { font-size: 1.1rem; letter-spacing: 2px; color: var(--primary-deep); margin: 10px 40px 10px 0; }
 .help-list { margin-left: 1.3em; font-size: 0.85rem; display: flex; flex-direction: column; gap: 10px; }
 .help-view .edit-panel { margin-top: 12px; }
-.footer-link { color: var(--primary-deep); font-size: 0.75rem; }
+.footer-link {
+  background: #d9e8ff; border: 1px solid #bcd4f7; border-radius: 999px;
+  padding: 3px 16px; color: var(--primary-deep); box-shadow: none;
+  text-decoration: none; font-size: 0.75rem; cursor: pointer; letter-spacing: 1px;
+}
+.footer-link:active { background: #c9deff; }
 
 /* 五点下线动画：5 方块逐级上下跳动 */
 .progress-card { text-align: center; }
