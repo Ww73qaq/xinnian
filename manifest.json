@@ -1,7 +1,7 @@
 {
   "name": "心念星辰 · 星愿守卫",
   "short_name": "心念",
-  "description": "像素风三层守卫：每日5颗星，风水土 + 正雷净化 + 弓晶疏导，离线可用",
+  "description": "像素风三层守卫：每日5颗星，风水土 + 正雷净化 + 弓箭疏导，离线可用",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

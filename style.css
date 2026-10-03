@@ -209,10 +209,22 @@ footer {
 .edit-btns { display: flex; gap: 8px; margin-top: 8px; }
 .edit-btns .px-btn { flex: 1; min-height: 40px; font-size: 0.78rem; }
 .edit-btns .link-btn {
-  border: none; background: none; color: var(--ink-soft);
-  font-size: 0.75rem; cursor: pointer; text-decoration: underline;
-  padding: 8px 4px;
+  border: none; background: none; color: #8a94a0;
+  font-size: 0.72rem; cursor: pointer; text-decoration: underline;
+  padding: 8px 4px; margin-left: auto; white-space: nowrap;
 }
+
+/* 倒计时大数字 */
+.count-num {
+  font-size: 2.6rem; font-weight: bold; color: var(--primary-deep);
+  text-shadow: 2px 2px 0 #fff; margin: 4px 0;
+}
+#countModal .modal-actions .px-btn { flex: 1; }
+
+/* 帮助页 */
+.help-view h2 { font-size: 1.1rem; letter-spacing: 2px; color: var(--primary-deep); margin: 10px 0; }
+.help-list { margin-left: 1.3em; font-size: 0.85rem; display: flex; flex-direction: column; gap: 10px; }
+.footer-link { color: var(--primary-deep); font-size: 0.75rem; }
 
 /* 五点下线动画：5 方块逐级上下跳动 */
 .progress-card { text-align: center; }

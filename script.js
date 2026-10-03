@@ -65,37 +65,37 @@
       name: '浅层过滤层', elem: '风', level: '低',
       tarot: '星币七（正）', cost: 0.5, type: '常驻占用',
       intro: '持续后台过滤碎片杂念、外来心念信号；遵循底层公理：恶意止步，善意无阻，对时停信号仅做身份核验，不拦截。',
-      note: '常驻后台运行，开启锁定0.5⭐；关闭屏障，0.5⭐额度返还。仅应急场景使用，日常保持常开。'
+      note: '常驻后台运行，开启锁定0.5⭐；关闭屏障，0.5⭐额度返还。仅应急场景使用，日常保持常开；关闭操作带有5秒缓冲，可中途取消。'
     },
     water: {
       name: '情绪心念隔离层', elem: '水', level: '中',
       tarot: '星币六（逆）', cost: 1.5, type: '按需占用',
-      intro: '按需开启，用完收回接地。',
-      note: '手动开启，用完收回接地。'
+      intro: '拉起情绪心念隔离屏障，允许心念信号抵达，切断情绪共振，保留心念连接；遵循底层公理：恶意止步，善意无阻。',
+      note: '开启需要10秒锚定蓄力，防止用力过重误触发深层防御；收回为5秒平稳卸除，避免心念场剧烈震荡；开启后持续占用对应星星，收回后额度返还。'
     },
     earth: {
       name: '深层印记拦截层', elem: '土', level: '高',
       tarot: '女皇（正）', cost: 3.0, type: '短时占用',
-      intro: '短时开启，用完立刻收回接地。',
-      note: '短时开启，用完立刻接地，高消耗。'
+      intro: '厚重深层心念屏障，阻断深层印记侵入，属于紧急防护手段。遵循底层公理：恶意止步，善意无阻。',
+      note: '常规模式10秒蓄力，便于精准锚定；紧急模式5秒快速拉起，会损失部分感知精准度；收回统一5秒平稳卸除；开启后持续占用对应星星，收回后额度返还。'
     },
     thunder: {
       name: '一次性正雷净化', elem: '雷', level: '瞬时',
       tarot: '倒吊人（逆）', cost: 2.0, type: '瞬时一次性消耗',
-      intro: '一次性正雷净化，触发即清理。',
-      note: '触发直接消耗，资源不返还。'
+      intro: '心念场净化清理工具，逐层扫过感知区域，清理残留心念印记与杂讯。',
+      note: '启动后10秒执行净化流程，执行途中可随时取消终止；属于一次性操作，完成自动结束，不会持续占用星星资源。'
     },
     bow: {
-      name: '疏导释放弓晶', elem: '晶', level: '按需',
-      tarot: '圣杯九（正）', cost: 1.5, type: '按需占用',
-      intro: '疏导释放，能量导出后再回收。',
-      note: '疏导动作结束，资源归还。'
+      name: '疏导释放弓箭', elem: '晶', level: '瞬时',
+      tarot: '圣杯九（正）', cost: 1.5, type: '蓄力锁定，射出消耗',
+      intro: '心念蓄力，疏导多余感知能量向外释放；蓄力阶段能量可控，释放射出后能量不可回收。',
+      note: '开启进入10秒蓄力倒计时，蓄力期间可随时取消，能量收回、资源返还；释放动作完成后，能量向外疏导。释放一旦射出，不可撤回，能量无法收回。'
     },
     calibrate: {
       name: '过滤器校准', elem: '风', level: '瞬时',
       tarot: '圣杯国王（正）', cost: 0.5, type: '瞬时一次性消耗',
-      intro: '重置浅层识别判定，刷新白名单身份校验，清理滞留杂讯。浅层屏障维持开启，不会中断基础防护。',
-      note: '触发直接扣除，能量不可返还。'
+      intro: '对常驻的浅层过滤屏障进行维护，修复判定漂移，稳定心念感知。',
+      note: '一次性维护操作，简单确认弹窗，没有蓄力倒计时；执行消耗0.5⭐，消耗后动作结束，不常驻占用资源。'
     }
   };
 
@@ -111,25 +111,44 @@
   var homeView = document.getElementById('homeView');
   var currentDetailId = null;
 
-  // 单文件双页面路由：首页 #homeView 与详情页 #detailView 二选一展示
+  // 单文件多页面路由：首页 / 详情页 / 帮助页多选一展示
+  var helpView = document.getElementById('helpView');
   function freshState() {
     var res = checkMidnightReset(loadState());
     var st = res.state;
+    if (res.reset && st.pending) {
+      st.pending = null; // 跨零点：未完成的操作直接取消
+      res.pendingDropped = true;
+    }
     ensureWind(st);
+    if (!('pending' in st)) st.pending = null;
     saveState(st);
-    return { state: st, reset: res.reset };
+    return { state: st, reset: res.reset, pendingDropped: res.pendingDropped };
+  }
+
+  function hideAllPages() {
+    homeView.hidden = true;
+    detailView.hidden = true;
+    if (helpView) helpView.hidden = true;
   }
 
   function showHomePage() {
     currentDetailId = null;
-    detailView.hidden = true;
+    hideAllPages();
     homeView.hidden = false;
+  }
+
+  function showHelpPage() {
+    currentDetailId = null;
+    hideAllPages();
+    if (helpView) helpView.hidden = false;
+    window.scrollTo(0, 0);
   }
 
   function showDetailPage(id) {
     if (!MODULES[id]) return;
     currentDetailId = id;
-    homeView.hidden = true;
+    hideAllPages();
     detailView.hidden = false;
     renderDetail(freshState().state, id);
     detailView.classList.remove('page-enter');
@@ -201,24 +220,103 @@
     });
   }
 
-  // 进度弹窗：如下线过程，5 点跳动 ms 毫秒后执行 done（不可点掉）
-  var progressActive = false;
-  function showProgress(text, ms, done) {
-    if (progressActive) return;
-    progressActive = true;
-    document.getElementById('progressText').textContent = text;
-    document.getElementById('progressModal').hidden = false;
-    setTimeout(function () {
-      document.getElementById('progressModal').hidden = true;
-      progressActive = false;
-      if (done) done();
-    }, ms);
+  // 倒计时引擎：开/关/蓄力统一走可取消倒计时
+  // pending 形态：{id, amount, mode:'occupy'|'consume'|'release', endsAt, runText, doneToast, cancelToast}
+  // occupy/consume 在倒计时期间锁定额度；release 期间保持原占用不变
+  var countTimer = null;
+
+  function pendingLock(s) {
+    if (s.pending && (s.pending.mode === 'occupy' || s.pending.mode === 'consume')) {
+      return Math.round(s.pending.amount * 10) / 10;
+    }
+    return 0;
+  }
+
+  function hasPending() {
+    try {
+      var raw = localStorage.getItem(STATE_KEY);
+      var p = raw && JSON.parse(raw).pending;
+      return !!(p && p.endsAt);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function startCountdown(opts) {
+    if (hasPending()) { toast('有操作进行中，请先完成或取消'); return false; }
+    var s = freshState().state;
+    s.pending = {
+      id: opts.id, amount: opts.amount, mode: opts.mode,
+      endsAt: Date.now() + opts.seconds * 1000,
+      runText: opts.runText, doneToast: opts.doneToast, cancelToast: opts.cancelToast
+    };
+    saveState(s);
+    renderAll(s);
+    showCountModal();
+    tickCountdown();
+    return true;
+  }
+
+  function showCountModal() {
+    document.getElementById('countModal').hidden = false;
+  }
+  function hideCountModal() {
+    if (countTimer) { clearInterval(countTimer); countTimer = null; }
+    document.getElementById('countModal').hidden = true;
+  }
+
+  function tickCountdown() {
+    if (countTimer) clearInterval(countTimer);
+    var update = function () {
+      var s = loadState();
+      var p = s.pending;
+      if (!p || !p.endsAt) { hideCountModal(); return; }
+      var remain = Math.ceil((p.endsAt - Date.now()) / 1000);
+      if (remain <= 0) { completePending(); return; }
+      document.getElementById('countText').textContent = p.runText;
+      document.getElementById('countNum').textContent = remain;
+    };
+    update();
+    countTimer = setInterval(update, 200);
+  }
+
+  function completePending() {
+    var res = freshState();
+    var s = res.state;
+    var p = s.pending;
+    hideCountModal();
+    if (!p) { renderAll(s); return; }
+    if (p.mode === 'occupy') {
+      s.occupied[p.id] = p.amount;
+    } else if (p.mode === 'consume') {
+      s.spent = Math.round((s.spent + p.amount) * 10) / 10;
+    } else if (p.mode === 'release') {
+      if (s.occupied[p.id]) delete s.occupied[p.id];
+    }
+    s.pending = null;
+    saveState(s);
+    renderAll(s, { animateLast: p.mode !== 'consume' });
+    toast(p.doneToast);
+  }
+
+  function cancelCountdown() {
+    var s = freshState().state;
+    var p = s.pending;
+    hideCountModal();
+    if (!p) return;
+    var msg = p.cancelToast || '已取消，锁定资源已返还';
+    s.pending = null;
+    saveState(s);
+    renderAll(s);
+    toast(msg);
   }
 
   var OPEN_COPY = {
-    water: '开启情绪隔离层将占用 1.5⭐，手动收回接地可全额归还，确定继续吗？',
-    earth: '开启深层拦截层将占用 3.0⭐，短时开启、用完请立即收回接地，确定继续吗？',
-    bow: '开启疏导释放弓晶将占用 1.5⭐，疏导结束关闭可全额归还，确定继续吗？'
+    water: '开启情绪隔离层将占用 1.5⭐，10 秒锚定蓄力，倒计时内可取消，确定继续吗？',
+    earth: '常规开启深层拦截层将占用 3.0⭐，10 秒蓄力精准锚定，倒计时内可取消，确定继续吗？',
+    earthFast: '紧急开启深层拦截层将占用 3.0⭐，5 秒快速拉起（损失部分感知精准度），倒计时内可取消，确定继续吗？',
+    bow: '启动疏导蓄力将锁定 1.5⭐，10 秒后射出释放（射出后不可撤回），倒计时内取消全额返还，确定继续吗？',
+    thunder: '启动正雷净化将锁定 2.0⭐，10 秒后执行净化（一次性不返还），倒计时内取消不扣星，确定继续吗？'
   };
 
   function closeDetail() {
@@ -231,6 +329,10 @@
   }
 
   function route() {
+    if (location.hash === '#help') {
+      showHelpPage();
+      return;
+    }
     var m = /^#m-(wind|water|earth|thunder|bow|calibrate)$/.exec(location.hash);
     if (m) {
       showDetailPage(m[1]);
@@ -333,7 +435,8 @@
   }
 
   function available(s) {
-    var v = Math.round((TOTAL - occupiedSum(s) - s.spent) * 10) / 10;
+    if (!s.spent) s.spent = 0;
+    var v = Math.round((TOTAL - occupiedSum(s) - s.spent - pendingLock(s)) * 10) / 10;
     if (v < 0) v = 0;
     if (v > TOTAL) v = TOTAL;
     return v;
@@ -386,7 +489,7 @@
     renderStars(avail, opts.animateLast);
     var d = new Date();
     lastResetEl.textContent = '今天 · ' + (d.getMonth() + 1) + '月' + d.getDate() + '日 · 0点回满5颗';
-    energyHintEl.textContent = '可用 ' + fmt(avail) + '★ ＝ 5 − 常驻 ' + fmt(s.occupied.wind || 0) + ' − 占用 ' + fmt(Math.round((occupiedSum(s) - (s.occupied.wind || 0)) * 10) / 10) + ' − 已消耗 ' + fmt(s.spent);
+    energyHintEl.textContent = '可用 ' + fmt(avail) + '★ ＝ 5 − 常驻 ' + fmt(s.occupied.wind || 0) + ' − 占用 ' + fmt(Math.round((occupiedSum(s) - (s.occupied.wind || 0)) * 10) / 10) + ' − 已消耗 ' + fmt(s.spent) + (pendingLock(s) > 0 ? ' − 锁定 ' + fmt(pendingLock(s)) : '');
 
     // 加星上限：可用已顶满（无可补充的消耗）时禁用加星按钮
     var addOneBtn = document.getElementById('addOneBtn');
@@ -396,12 +499,15 @@
     if (addHalfBtn) addHalfBtn.disabled = s.spent < 0.5 - 1e-9;
     if (removeHalfBtn) removeHalfBtn.disabled = avail < 0.5 - 1e-9;
 
-    // 六按钮状态（风层每日自动开启，可手动关闭返还）
+    // 六按钮状态（风层每日自动开启，可手动关闭返还；倒计时中显示锁定态）
     Object.keys(MODULES).forEach(function (id) {
       var m = MODULES[id];
       var slot = document.querySelector('[data-state-for="' + id + '"]');
       if (!slot) return;
-      if (id === 'wind') {
+      if (s.pending && s.pending.id === id) {
+        slot.textContent = s.pending.mode === 'release' ? '◌ 卸除中…' : '◌ 蓄力中…';
+        slot.classList.remove('locked');
+      } else if (id === 'wind') {
         if (s.occupied.wind) {
           slot.textContent = '● 常驻运行中';
           slot.classList.remove('locked');
@@ -409,7 +515,7 @@
           slot.textContent = '○ 可开启';
           slot.classList.remove('locked');
         }
-      } else if (id === 'thunder' || id === 'calibrate') {
+      } else if (id === 'thunder' || id === 'bow' || id === 'calibrate') {
         if (avail >= m.cost) {
           slot.textContent = '○ 可触发';
           slot.classList.remove('locked');
@@ -445,8 +551,11 @@
     closeEditPanels();
     var statusEl = document.getElementById('detailStatus');
     var primaryBtn = document.getElementById('primaryActionBtn');
+    var altBtn = document.getElementById('altActionBtn');
     var secondaryBtn = document.getElementById('secondaryActionBtn');
     document.getElementById('windToggleBtn').hidden = true; // 仅风层展示右上角弱按钮
+    altBtn.hidden = true;
+    var pendingHere = s.pending && s.pending.id === id;
 
     if (id === 'wind') {
       // 底部只保留日常主操作；开/关屏障弱化到右上角小按钮
@@ -463,10 +572,16 @@
         statusEl.textContent = '屏障已下线，0.5⭐已返还';
       }
     } else if (id === 'thunder') {
-      statusEl.textContent = '今日已消耗 ' + fmt(s.spent) + '⭐（一次性不返还）';
+      statusEl.textContent = pendingHere ? '净化蓄力中…倒计时内可取消' : '今日已消耗 ' + fmt(s.spent) + '⭐（一次性不返还）';
       primaryBtn.hidden = false;
-      primaryBtn.textContent = '触发净化 −' + fmt(m.cost) + '⭐';
-      primaryBtn.disabled = available(s) < m.cost;
+      primaryBtn.textContent = '启动净化（10秒蓄力）';
+      primaryBtn.disabled = available(s) < m.cost - 1e-9;
+      secondaryBtn.hidden = true;
+    } else if (id === 'bow') {
+      statusEl.textContent = pendingHere ? '疏导蓄力中…倒计时内取消可全额返还' : '未蓄力 · 射出后能量不可回收';
+      primaryBtn.hidden = false;
+      primaryBtn.textContent = '启动蓄力（10秒）';
+      primaryBtn.disabled = available(s) < m.cost - 1e-9;
       secondaryBtn.hidden = true;
     } else if (id === 'calibrate') {
       statusEl.textContent = '浅层专属维护 · 屏障保持开启 · 今日已消耗 ' + fmt(s.spent) + '⭐';
@@ -474,41 +589,74 @@
       primaryBtn.textContent = '触发校准 −' + fmt(m.cost) + '⭐';
       primaryBtn.disabled = available(s) < m.cost - 1e-9;
       secondaryBtn.hidden = true;
+    } else if (id === 'earth') {
+      primaryBtn.hidden = false;
+      if (s.occupied.earth) {
+        statusEl.textContent = pendingHere ? '屏障卸除中…倒计时内可取消' : '开启中，占用 ' + fmt(m.cost) + '⭐（收回接地可归还）';
+        primaryBtn.textContent = '收回接地（5秒卸除）';
+        primaryBtn.disabled = false;
+      } else {
+        statusEl.textContent = pendingHere ? '屏障拉起中…倒计时内可取消' : (available(s) >= m.cost - 1e-9 ? '未开启，可手动开启' : '星不足，无法开启（需 ' + fmt(m.cost) + '⭐）');
+        primaryBtn.textContent = '常规开启（10秒）';
+        primaryBtn.disabled = available(s) < m.cost - 1e-9;
+        altBtn.hidden = false;
+        altBtn.textContent = '紧急开启（5秒）';
+        altBtn.disabled = available(s) < m.cost - 1e-9;
+      }
+      secondaryBtn.hidden = true;
     } else {
       primaryBtn.hidden = false;
       if (s.occupied[id]) {
-        statusEl.textContent = '开启中，占用 ' + fmt(m.cost) + '⭐（收回接地可归还）';
-        primaryBtn.textContent = '收回接地（归还' + fmt(m.cost) + '⭐）';
+        statusEl.textContent = pendingHere ? '屏障卸除中…倒计时内可取消' : '开启中，占用 ' + fmt(m.cost) + '⭐（收回接地可归还）';
+        primaryBtn.textContent = '收回接地（5秒卸除）';
+        primaryBtn.disabled = false;
         secondaryBtn.hidden = true;
       } else {
-        statusEl.textContent = available(s) >= m.cost ? '未开启，可手动开启' : '星不足，无法开启（需 ' + fmt(m.cost) + '⭐）';
-        primaryBtn.textContent = '开启 −' + fmt(m.cost) + '⭐';
+        statusEl.textContent = pendingHere ? '屏障拉起中…倒计时内可取消' : (available(s) >= m.cost ? '未开启，可手动开启' : '星不足，无法开启（需 ' + fmt(m.cost) + '⭐）');
+        primaryBtn.textContent = '开启（10秒蓄力）';
         primaryBtn.disabled = available(s) < m.cost;
         secondaryBtn.hidden = true;
       }
     }
+    if (pendingHere && id !== 'wind') {
+      // 倒计时进行中：本题内不再接受新的开/关动作，去倒计时弹窗取消
+      primaryBtn.disabled = true;
+      altBtn.disabled = true;
+    }
   }
 
   function primaryAction() {
-    var s = checkMidnightReset(loadState()).state;
-    ensureWind(s);
+    var s = freshState().state;
     var id = currentDetailId;
     if (!id || !MODULES[id]) return;
     var m = MODULES[id];
+    if (hasPending()) { toast('有操作进行中，请先完成或取消'); return; }
 
     if (id === 'wind') {
       openDetail('calibrate'); // 底部唯一主按钮：前往过滤器校准
       return;
     }
     if (id === 'thunder') {
-      if (available(s) < m.cost) { toast('星不足：净化需要 ' + fmt(m.cost) + '⭐'); return; }
-      showConfirm('触发正雷净化将一次性消耗 2.0⭐，能量不返还，确定继续吗？', '确认触发', function () {
-        var st = freshState().state;
-        if (available(st) < m.cost) { toast('星不足：净化需要 ' + fmt(m.cost) + '⭐'); return; }
-        st.spent = Math.round((st.spent + m.cost) * 10) / 10;
-        saveState(st);
-        renderAll(st, { animateLast: false });
-        toast('正雷净化已触发 −' + fmt(m.cost) + '⭐（不返还）');
+      if (available(s) < m.cost - 1e-9) { toast('星不足：净化需要 ' + fmt(m.cost) + '⭐'); return; }
+      showConfirm(OPEN_COPY.thunder, '确认启动', function () {
+        startCountdown({
+          id: 'thunder', amount: m.cost, mode: 'consume', seconds: 10,
+          runText: '正雷净化执行中…倒计时内可取消',
+          doneToast: '正雷净化完成 −' + fmt(m.cost) + '⭐（不返还）',
+          cancelToast: '净化已终止，未消耗星星'
+        });
+      });
+      return;
+    }
+    if (id === 'bow') {
+      if (available(s) < m.cost - 1e-9) { toast('星不足：蓄力需要 ' + fmt(m.cost) + '⭐'); return; }
+      showConfirm(OPEN_COPY.bow, '确认蓄力', function () {
+        startCountdown({
+          id: 'bow', amount: m.cost, mode: 'consume', seconds: 10,
+          runText: '疏导蓄力中…倒计时内取消可全额返还',
+          doneToast: '弓箭已射出释放 −' + fmt(m.cost) + '⭐（不可撤回）',
+          cancelToast: '蓄力已取消，能量收回、资源返还'
+        });
       });
       return;
     }
@@ -527,61 +675,67 @@
     }
 
     if (s.occupied[id]) {
-      // 收回接地：即时返还意愿确认后，走 5 秒收回动画再落账
-      showProgress('正在收回' + m.name + '…', 5000, function () {
-        var st = freshState().state;
-        if (st.occupied[id]) {
-          delete st.occupied[id];
-          saveState(st);
-        }
-        renderAll(st, { animateLast: true });
-        toast(m.name + '已收回接地，归还 ' + fmt(m.cost) + '⭐');
+      // 收回接地：统一 5 秒平稳卸除，倒计时内可取消
+      startCountdown({
+        id: id, amount: m.cost, mode: 'release', seconds: 5,
+        runText: '正在收回' + m.name + '…倒计时内可取消',
+        doneToast: m.name + '已收回接地，归还 ' + fmt(m.cost) + '⭐',
+        cancelToast: '已取消收回，屏障保持开启'
       });
     } else {
-      if (available(s) < m.cost) { toast('星不足：需要 ' + fmt(m.cost) + '⭐'); return; }
+      if (available(s) < m.cost - 1e-9) { toast('星不足：需要 ' + fmt(m.cost) + '⭐'); return; }
       showConfirm(OPEN_COPY[id] || ('开启' + m.name + '将占用 ' + fmt(m.cost) + '⭐，确定继续吗？'), '确认开启', function () {
-        showProgress('正在开启' + m.name + '…', 5000, function () {
-          var st = freshState().state;
-          if (st.occupied[id]) { renderAll(st); return; }
-          if (available(st) < m.cost) { toast('星不足：需要 ' + fmt(m.cost) + '⭐'); return; }
-          st.occupied[id] = m.cost;
-          saveState(st);
-          renderAll(st, { animateLast: false });
-          toast(m.name + '已开启，占用 ' + fmt(m.cost) + '⭐');
+        startCountdown({
+          id: id, amount: m.cost, mode: 'occupy', seconds: 10,
+          runText: '正在开启' + m.name + '…倒计时内可取消',
+          doneToast: m.name + '已开启，占用 ' + fmt(m.cost) + '⭐',
+          cancelToast: '开启已取消，资源未锁定'
         });
       });
     }
   }
 
-  // 右上角弱按钮：风层屏障开 / 关（关：二次确认 + 5 秒五点下线动画）
+  // 土层紧急开启：5 秒快速拉起（损失部分感知精准度）
+  function earthFastAction() {
+    if (currentDetailId !== 'earth') return;
+    var s = freshState().state;
+    var m = MODULES.earth;
+    if (hasPending()) { toast('有操作进行中，请先完成或取消'); return; }
+    if (s.occupied.earth) return;
+    if (available(s) < m.cost - 1e-9) { toast('星不足：需要 ' + fmt(m.cost) + '⭐'); return; }
+    showConfirm(OPEN_COPY.earthFast, '紧急开启', function () {
+      startCountdown({
+        id: 'earth', amount: m.cost, mode: 'occupy', seconds: 5,
+        runText: '紧急拉起深层屏障…倒计时内可取消',
+        doneToast: '深层屏障已紧急拉起，占用 ' + fmt(m.cost) + '⭐',
+        cancelToast: '紧急开启已取消，资源未锁定'
+      });
+    });
+  }
+
+  // 右上角弱按钮：风层屏障开（确认后直接开启，无倒计时）/ 关（二次确认 + 5 秒可取消倒计时）
   function windToggle() {
-    if (progressActive) return;
-    var f = freshState();
-    var s = f.state;
+    var s = freshState().state;
+    if (hasPending()) { toast('有操作进行中，请先完成或取消'); return; }
     if (s.occupied.wind) {
       showConfirm('关闭后将返还 0.5⭐，屏障下线，确定继续吗？', '确认关闭', function () {
-        showProgress('浅层屏障正在下线…', 5000, function () {
-          var st = freshState().state;
-          if (st.occupied.wind) {
-            delete st.occupied.wind;
-            saveState(st);
-          }
-          renderAll(st, { animateLast: true });
-          toast('浅层屏障已下线，返还 0.5⭐');
+        startCountdown({
+          id: 'wind', amount: 0.5, mode: 'release', seconds: 5,
+          runText: '浅层屏障正在下线…倒计时内可取消',
+          doneToast: '浅层屏障已下线，返还 0.5⭐',
+          cancelToast: '已取消关闭，屏障保持开启'
         });
       }, 'danger');
     } else {
       if (available(s) < 0.5 - 1e-9) { toast('星不足：开启需要 0.5⭐'); return; }
       showConfirm('开启浅层屏障将占用 0.5⭐，确定继续吗？', '确认开启', function () {
-        showProgress('浅层屏障正在开启…', 5000, function () {
-          var st = freshState().state;
-          if (st.occupied.wind) { renderAll(st); return; }
-          if (available(st) < 0.5 - 1e-9) { toast('星不足：开启需要 0.5⭐'); return; }
-          st.occupied.wind = 0.5;
-          saveState(st);
-          renderAll(st, { animateLast: false });
-          toast('浅层屏障已开启，占用 0.5⭐');
-        });
+        var st = freshState().state;
+        if (st.occupied.wind) { renderAll(st); return; }
+        if (available(st) < 0.5 - 1e-9) { toast('星不足：开启需要 0.5⭐'); return; }
+        st.occupied.wind = 0.5;
+        saveState(st);
+        renderAll(st, { animateLast: false });
+        toast('浅层屏障已开启，占用 0.5⭐');
       });
     }
   }
@@ -595,7 +749,7 @@
       s.spent = Math.round(Math.max(0, s.spent - manualDelta) * 10) / 10;
     } else {
       var want = Math.round((s.spent - manualDelta) * 10) / 10; // manualDelta 为负
-      var maxSpent = Math.round((TOTAL - occupiedSum(s)) * 10) / 10;
+      var maxSpent = Math.round((TOTAL - occupiedSum(s) - pendingLock(s)) * 10) / 10;
       if (want > maxSpent + 1e-9) { toast('取消过多：占用中资源不可透支'); return; }
       s.spent = want;
     }
@@ -605,13 +759,19 @@
   }
 
   function init() {
-    var res = checkMidnightReset(loadState());
-    var s = res.state;
-    var migrated = ensureWind(s);
+    var f0 = freshState();
+    var s = f0.state;
+    var migrated = !!(s.occupied && s.occupied.wind);
     saveState(s);
     renderAll(s);
-    route(); // 支持带 #m-xxx 直连进入详情页
+    route(); // 支持带 #m-xxx / #help 直连进入
     window.addEventListener('hashchange', route);
+    // 跨重载恢复未完成的倒计时（已过期的直接落账）
+    if (s.pending && s.pending.endsAt) {
+      showCountModal();
+      tickCountdown();
+      toast('上次的操作继续倒计时');
+    }
 
     document.getElementById('addOneBtn').addEventListener('click', function () { adjust(1); });
     document.getElementById('addHalfBtn').addEventListener('click', function () { adjust(0.5); });
@@ -628,7 +788,14 @@
 
     document.getElementById('backBtn').addEventListener('click', closeDetail);
     document.getElementById('primaryActionBtn').addEventListener('click', primaryAction);
+    document.getElementById('altActionBtn').addEventListener('click', earthFastAction);
     document.getElementById('windToggleBtn').addEventListener('click', windToggle);
+    document.getElementById('countCancelBtn').addEventListener('click', cancelCountdown);
+    document.getElementById('helpLink').addEventListener('click', function () {
+      if (location.hash === '#help') route();
+      else location.hash = '#help';
+    });
+    document.getElementById('helpBackBtn').addEventListener('click', closeDetail);
     wireEdit('intro');
     wireEdit('note');
     document.getElementById('modalConfirmBtn').addEventListener('click', function () {
@@ -641,8 +808,8 @@
       if (e.target === this) hideConfirm();
     });
 
-    if (res.reset) toast('已过 0 点，能量回满 5⭐（浅层过滤层自动常驻 0.5⭐）');
-    else if (migrated) toast('浅层过滤层已纳入常驻（每日自动开启）');
+    if (f0.pendingDropped) toast('已过 0 点，能量回满，未完成的操作已取消');
+    else if (f0.reset) toast('已过 0 点，能量回满 5⭐（浅层过滤层自动常驻 0.5⭐）');
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
         navigator.serviceWorker.register('sw.js').catch(function () {});

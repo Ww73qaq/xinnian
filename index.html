@@ -11,7 +11,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="心念星辰">
-  <meta name="description" content="像素风三层守卫：每日5颗星，风·水·土 + 正雷净化 + 弓晶疏导">
+  <meta name="description" content="像素风三层守卫：每日5颗星，风·水·土 + 正雷净化 + 弓箭疏导">
   <meta name="format-detection" content="telephone=no">
   <meta name="msapplication-TileColor" content="#7AB8FF">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.svg">
@@ -99,15 +99,15 @@
               <span class="func-state" data-state-for="thunder"></span>
             </button>
 
-            <button class="px-card func-btn wide" type="button" data-module="bow">
+            <button class="px-card func-btn" type="button" data-module="bow">
               <span class="func-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M6 3c5 3 5 15 0 18"/><path d="M6 12h11"/><path d="M14 8l4 4-4 4"/><path d="M18 6l1.5 1.5L18 9"/>
                 </svg>
               </span>
-              <span class="func-name">疏导释放弓晶</span>
-              <span class="func-elem">晶 · 按需</span>
-              <span class="func-cost">1.5★ 按需</span>
+              <span class="func-name">疏导释放弓箭</span>
+              <span class="func-elem">晶 · 瞬时</span>
+              <span class="func-cost">1.5★ 一次性</span>
               <span class="func-state" data-state-for="bow"></span>
             </button>
 
@@ -167,12 +167,28 @@
       </dl>
       <div class="detail-actions">
         <button class="px-btn" id="primaryActionBtn" type="button">开启</button>
+        <button class="px-btn" id="altActionBtn" type="button" hidden>紧急开启</button>
         <button class="px-btn ghost" id="secondaryActionBtn" type="button" hidden>收回接地</button>
       </div>
     </section>
 
+    <!-- 帮助页（统一全局规则） -->
+    <section class="px-card detail-view help-view" id="helpView" hidden aria-label="玩法说明">
+      <div class="detail-topbar">
+        <button class="px-btn small ghost" id="helpBackBtn" type="button">← 返回</button>
+      </div>
+      <h2>玩法说明 · 全局规则</h2>
+      <ol class="help-list">
+        <li>所有倒计时阶段都带有【取消】按钮，可随时终止本次操作，锁定资源全额返还。</li>
+        <li>屏障收回统一 5 秒平稳卸除，防止心念层面震荡；二层、三层开启后持续锁定星星，手动收回才返还。</li>
+        <li>正雷净化、疏导释放弓箭是一次性心念工具：蓄力阶段锁定资源，倒计时内取消可返还；动作完成（射出/执行）后能量不再返还。</li>
+        <li>过滤器校准是浅层专属维护操作：确认弹窗后直接执行，无倒计时，消耗 0.5⭐ 不返还。</li>
+        <li>每日 0 点按本机时间自动回满 5 颗（浅层过滤层自动常驻 0.5⭐）；半星粒度 0.5⭐，上限 4.5⭐可用。</li>
+      </ol>
+    </section>
+
     <footer>
-      <p>💙 星星存在本机浏览器，断网可用 · 0 点自动回满 5 颗</p>
+      <p>💙 星星存在本机浏览器，断网可用 · 0 点自动回满 5 颗 · <button class="link-btn footer-link" id="helpLink" type="button">玩法说明</button></p>
     </footer>
   </div>
 
@@ -190,11 +206,15 @@
     </div>
   </div>
 
-  <!-- 进度弹窗（如下线过程，与确认弹窗同风格） -->
-  <div class="modal-mask" id="progressModal" hidden>
+  <!-- 倒计时弹窗（开/关/蓄力统一：数字 + 取消） -->
+  <div class="modal-mask" id="countModal" hidden>
     <div class="px-card modal-card progress-card" role="status" aria-live="polite">
-      <p id="progressText">正在处理…</p>
+      <p id="countText">正在开启…</p>
+      <div class="count-num" id="countNum">10</div>
       <div class="dots" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="modal-actions">
+        <button class="px-btn small ghost" id="countCancelBtn" type="button">取消</button>
+      </div>
     </div>
   </div>
 
